@@ -55,21 +55,29 @@ class BibUtils(object):
 				authors = authors.split(" and ")
 				for author in authors:
 					if ", " in author:
-						(lastname, firstname) = author.split(", ")
+						(lastname, firstnames) = author.split(", ")
 					else:
 						lastname_words = set([ "de", "der", "von", "van" ])
 						author = author.split(" ")
-						firstname = author[:-1]
+						firstnames = author[:-1]
 						lastname = [ author[-1] ]
 
-						while len(firstname) > 1 and firstname[-1] in lastname_words:
-							lastname.insert(0, firstname[-1])
-							firstname = firstname[:-1]
+						while len(firstnames) > 1 and firstnames[-1].lower() in lastname_words:
+							lastname.insert(0, firstnames[-1])
+							firstnames = firstnames[:-1]
 
-						firstname = " ".join(firstname)
+						firstnames = " ".join(firstnames)
 						lastname = " ".join(lastname)
-					names.add((lastname, firstname))
 
+					firstnames = firstnames.split(" ")
+					if len(firstnames) == 1:
+						firstname = firstnames[0]
+						midname = None
+					else:
+						firstname = firstnames[0]
+						midname = " ".join(firstnames[1:])
 
-		names = [ { "firstname": firstname, "lastname": lastname } for (firstname, lastname) in sorted(names) ]
+					names.add((lastname, firstname, midname))
+
+		names = [ { "firstname": firstname, "lastname": lastname, "midname": midname } for (lastname, firstname, midname) in sorted(names) ]
 		print(json.dumps(names), file = file)

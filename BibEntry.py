@@ -94,29 +94,32 @@ class BibEntry(object):
 
 	def _printkey(self, key, f):
 		value = self._properties[key]
+		value = value.rstrip(" \t")
+		if not value.endswith(","):
+			value += ","
 		print("	%-20s = %s" % (key, value), file = f)
 
-	def pretty_print(self, f = None):
-		if f is None:
-			f = sys.stdout
+	def pretty_print(self, file = None):
+		if file is None:
+			file = sys.stdout
 		for suppression in sorted(self._suppressions.values()):
 			if suppression.description is None:
-				print("%% LINT %s" % (suppression.suppress), file = f)
+				print("%% LINT %s" % (suppression.suppress), file = file)
 			else:
-				print("%% LINT %s %s" % (suppression.suppress, suppression.description), file = f)
-		print("@%s{%s," % (self.pretty_etype, self._name), file = f)
+				print("%% LINT %s %s" % (suppression.suppress, suppression.description), file = file)
+		print("@%s{%s," % (self.pretty_etype, self._name), file = file)
 
 		# Print preferred key/values first
 		for key in self._preferred_order:
 			if self.haskey(key):
-				self._printkey(key, f)
+				self._printkey(key, file)
 
 		# Then the rest in alphabetical order
 		for (key, value) in sorted(self._properties.items()):
 			if key not in self._preferred_order_set:
-				self._printkey(key, f)
-		print("}", file = f)
-		print(file = f)
+				self._printkey(key, file)
+		print("}", file = file)
+		print(file = file)
 
 	def parsetext(self, value):
 		value = value.rstrip("\r\n\t ")

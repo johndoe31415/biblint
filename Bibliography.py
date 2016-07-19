@@ -80,9 +80,9 @@ class Bibliography(object):
 	def grouped_entries_by_name(self):
 		return self._grouped_entries_by_name
 
-	def pretty_print(self, f):
+	def pretty_print(self, file):
 		for entry in self._entries:
-			entry.pretty_print(f)
+			entry.pretty_print(file)
 
 	def getbyindex(self, index):
 		return self._entries[index]

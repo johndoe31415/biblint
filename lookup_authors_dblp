@@ -2,41 +2,69 @@
 import time
 import requests
 import sys
+import json
+import textwrap
 import urllib.parse
+from SQLite import SQLite
 from XMLParser import XMLParser
 
-authors = set()
-with open(sys.argv[1]) as f:
-	for line in f:
-		line = line.rstrip("\r\n")
-		if line.startswith("> "):
-			author = line[2:]
-			authors.add(author)
+if len(sys.argv) != 2:
+	print("%s [Author JSON File]" % (sys.argv[0]))
+	print()
+	for line in textwrap.wrap("Takes a JSON file of authors as it is outputted by biblint. Searches for these authors using dblp in order to find inconsistent use of names."):
+		print(line)
+	sys.exit(1)
 
+filename = sys.argv[1]
+with open(filename) as f:
+	jsonstr = f.read()
+authors = json.loads(jsonstr)
 
-with open("author_lookup.txt", "a") as f:
-	for author in sorted(authors):
-		url = "http://dblp.uni-trier.de/search/author?xauthor=%s" % (urllib.parse.quote_plus(author))
+def whole_name_fml(author):
+	if author["midname"] is None:
+		return author["firstname"] + " " + author["lastname"]
+	else:
+		return author["firstname"] + " " + author["midname"] + " " + author["lastname"]
+
+db = SQLite("author_scan_cache.sqlite3")
+db.exec_mayfail_commit("""
+	CREATE TABLE dblp_cache (
+		cid integer NOT NULL PRIMARY KEY,
+		uri varchar NOT NULL UNIQUE,
+		data blob NOT NULL,
+		created timestamp DEFAULT CURRENT_TIMESTAMP
+	);
+""")
+
+# Don't be a dick towards DBLP
+gracetime = 1.0
+
+for author in authors:
+	author_name = whole_name_fml(author)
+	url = "http://dblp.uni-trier.de/search/author?xauthor=%s" % (urllib.parse.quote_plus(author_name))
+
+	reply = db.execute("SELECT data FROM dblp_cache WHERE uri = ?;", url).fetchone()
+	if reply is None:
 		reply = requests.get(url)
-		node = XMLParser().parse(reply.text)
+		reply = reply.text
+		db.execute("INSERT INTO dblp_cache (uri, data) VALUES (?, ?);", url, reply)
+		db.commit()
+		time.sleep(gracetime)
+	else:
+		reply = reply[0]
+	node = XMLParser().parse(reply)
 
-		orig_author = author.split(", ")
-		orig_author = " ".join(reversed(orig_author))
-		orig_author = orig_author.replace(".", "")
-		print(orig_author, file = f)
-
-		if node.getchild("author") is None:
-			print("    -", file = f)
-		else:
-			authors = [ ]
-			for author in node.author:
-				authors.append(author.getstrippedcdata().replace(".", ""))
-			authors.sort()
-			for author in authors:
-				if author == orig_author:
-					print(" -> %s" % (author), file = f)
-				else:
-					print("    %s" % (author), file = f)
-		print(file = f)
-		f.flush()
-		time.sleep(1)
+	print(author_name)
+	if node.getchild("author") is None:
+		print("    -")
+	else:
+		authors = [ ]
+		for author in node.author:
+			authors.append(author.getstrippedcdata().replace(".", ""))
+		authors.sort()
+		for author in authors:
+			if author == author_name:
+				print(" -> %s" % (author))
+			else:
+				print("    %s" % (author))
+	print()
