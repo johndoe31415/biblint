@@ -152,7 +152,7 @@ class LintOffense(object):
 	def cmpkey(self):
 		return (self._order, self._sources[0].filename, self._sources[0].lineno, self.sources[0].colno, self._lintclass.name)
 	
-	def short_dump(self):
+	def short_dump(self, file):
 		sources = ", ".join(str(source) for source in self._sources)
 		text = "%s: %s" % (sources, self.description)
 		if self.uris is not None:
@@ -160,20 +160,19 @@ class LintOffense(object):
 		if self.expect_field is not None:
 			text += " Expect: %s = {%s}," % (self.expect_field[0], self._expect_field[1])
 		text += " [%s]" % (self._lintclass.name)
-		print(text)
+		print(text, file = file)
 
-	def long_dump(self):
-#		offenses = "\n".join([ "%s:%d (%s): %s" % (os.path.basename(offense.filename), offense.lineof(self._fieldname), offense.name, offense.rawtext("title")) for offense in self._offending ])
+	def long_dump(self, file):
 		offenses = "\n".join(source.longstr() for source in self._sources)
-		print(self._lintclass.name)
-		print(offenses)
-		print("    %s" % (self.description))
+		print(self._lintclass.name, file = file)
+		print(offenses, file = file)
+		print("    %s" % (self.description), file = file)
 		if self.uris is not None:
 			for (name, uri) in self.uris.items():
-				print("    %s: %s" % (name, uri))
+				print("    %s: %s" % (name, uri), file = file)
 		if self.expect_field is not None:
-			print("    Expect: %s = {%s}," % (self.expect_field[0], self._expect_field[1]))
-		print()
+			print("    Expect: %s = {%s}," % (self.expect_field[0], self._expect_field[1]), file = file)
+		print(file = file)
 
 	def to_dict(self):
 		data = { 

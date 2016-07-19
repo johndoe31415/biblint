@@ -242,7 +242,7 @@ biblint is able to export the lists of potential issues in a format that vim
 can understand (quickfix). For this, do a biblint run and specify the
 "errfile" parameter:
     
-	$ ./biblint -e errors.txt my-awesome-phd-thesis.bib
+	$ ./biblint -f quickfix -o errors.txt my-awesome-phd-thesis.bib
 
 Then open up vi and enter
 

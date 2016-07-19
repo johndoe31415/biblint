@@ -31,14 +31,13 @@ oset = OptionSet(known_lint_check_names, default_str = "ALL:-check-local-copies:
 parser = FriendlyArgumentParser()
 parser.set_additional_help_callback(print_check_descriptions)
 parser.add_argument("-c", "--check", metavar = "checkstr", type = str, default = oset.default_str, help = "Checks to perform. Defaults to %(default)s. Recognized checks are " + (", ".join(known_lint_check_names)) + ". Special values are ALL or DEFAULT. A valid lint check string is separated by colons and every item is prefixed with + or -. The plus character can be omitted, the string is case-insensitive. One example would be '+foo-check:+bar-check' to only check 'foo' and 'bar'. Another one would be 'DEFAULT:-dumb-check' to check the ones enabled by default but disable 'dumb'. ")
-parser.add_argument("-e", "--errfile", metavar = "path", type = str, help = "Output a error-file that can be read by the :cf quickfix vim command in order to quickly fix the files.")
 parser.add_argument("-i", "--ignore-suppressions", action = "store_true", help = "Do not honor suppressions and always emit warnings.")
-parser.add_argument("-v", "--verbose", action = "store_true", help = "Be more verbose when checking")
-parser.add_argument("-f", "--format", choices = [ "short", "long", "json", "html" ], default = "short", help = "Display the lint messages in the specified format. Choices are %(choices)s, default is %(default)s.")
-parser.add_argument("-o", "--output", metavar = "path", help = "Output a nicely formatted BibTeX file in the specified file as well.")
-parser.add_argument("-t", "--tex", metavar = "texfile", type = str, action = "append", default = [ ], help = "Also parses a number of TeX files to be able to identify citations which are unused. Supports globbing in order to select multiple files.")
+parser.add_argument("-f", "--format", choices = [ "short", "long", "json", "html", "quickfix" ], default = "short", help = "Display the lint messages in the specified format. Choices are %(choices)s, default is %(default)s.")
+parser.add_argument("-o", "--output", metavar = "path", default = "-", help = "Specifies where to output the specific data to. Can be stdout by specifying '-'. Defaults to %(default)s.")
 parser.add_argument("-l", "--localdir", metavar = "path", default = "bibliography/", help = "Points to the directory where the local bibliography is expected. Defaults to %(default)s.")
-parser.add_argument("--author-scan", action = "store_true", help = "Scans through all authors and emits a comprehensive list.")
+parser.add_argument("-a", "--action", choices = [ "lint", "authorscan", "prettyprint" ], default = "lint", help = "Specifies the action that should be done with the given files. Can be one of %(choices)s, default is %(default)s. 'lint' does a regular lint scan, 'authorscan' outputs a JSON file of all authors and 'prettyprint' emits the scanned bibliography in a pretty-printed version.")
+parser.add_argument("-t", "--tex", metavar = "texfile", type = str, action = "append", default = [ ], help = "Also parses a number of TeX files to be able to identify citations which are unused. Supports globbing in order to select multiple files.")
+parser.add_argument("-v", "--verbose", action = "store_true", help = "Be more verbose when checking")
 parser.add_argument("bibfiles", metavar = "bibfile", type = str, nargs = "+", help = "Bibliography files which should be checked")
 args = parser.parse_args(sys.argv[1:])
 
@@ -58,53 +57,58 @@ for texfile_glob in args.tex:
 	if args.verbose:
 		print("Parsed %d citations from TeX." % (len(citations)))
 
-complaints = [ ]
-for check_class in apply_checks:
-	if args.verbose:
-		print("Now checking %s" % (check_class.name))
-
-	checker = check_class(args, bibliography, citations)
-	if check_class.linttype == "per_entry":
-		for entry in bibliography:
-			if entry.suppressed(check_class.name) and (not args.ignore_suppressions):
-				# Suppress this entry
-				continue
-
-			for complaint in checker.check_entry(entry):
-				complaints.append(complaint)
-	elif check_class.linttype == "once":
-		for complaint in checker.check_all():
-			complaints.append(complaint)
-	else:
-		raise Exception("Unknown linttype %s for checker %s" % (check_class.linttype, check_class.name))
-complaints.sort()
-
-if args.verbose:
-	print("%d complaints found." % (len(complaints)))
-
-if args.format == "short":
-	for complaint in complaints:
-		complaint.short_dump()
-elif args.format == "long":
-	for complaint in complaints:
-		complaint.long_dump()	
-elif args.format == "json":
-	complaint_data = [ complaint.to_dict() for complaint in complaints ]
-	print(json.dumps(complaint_data))
-elif args.format == "html":
-	renderer = HTMLComplaintRenderer(complaints)
-	print(renderer.render())
+if args.output == "-":
+	outfile = sys.stdout
 else:
-	raise Exception(NotImplemented)
+	outfile = open(args.output, "w")
 
-if args.errfile is not None:
-	with open(args.errfile, "w") as f:
-		for complaint in complaints:
-			complaint.print_vim_quickfix(f)
+with outfile:
+	if args.action == "lint":
+		complaints = [ ]
+		for check_class in apply_checks:
+			if args.verbose:
+				print("Now checking %s" % (check_class.name))
 
-if args.output is not None:
-	with open(args.output, "w") as f:
-		bibliography.pretty_print(f)
+			checker = check_class(args, bibliography, citations)
+			if check_class.linttype == "per_entry":
+				for entry in bibliography:
+					if entry.suppressed(check_class.name) and (not args.ignore_suppressions):
+						# Suppress this entry
+						continue
 
-if args.author_scan:
-    BibUtils(bibliography).author_scan()
+					for complaint in checker.check_entry(entry):
+						complaints.append(complaint)
+			elif check_class.linttype == "once":
+				for complaint in checker.check_all():
+					complaints.append(complaint)
+			else:
+				raise Exception("Unknown linttype %s for checker %s" % (check_class.linttype, check_class.name))
+		complaints.sort()
+
+		if args.verbose:
+			print("%d complaints found." % (len(complaints)))
+
+		if args.format == "short":
+			for complaint in complaints:
+				complaint.short_dump(file = outfile)
+		elif args.format == "long":
+			for complaint in complaints:
+				complaint.long_dump(file = outfile)
+		elif args.format == "json":
+			complaint_data = [ complaint.to_dict() for complaint in complaints ]
+			print(json.dumps(complaint_data), file = outfile)
+		elif args.format == "html":
+			renderer = HTMLComplaintRenderer(complaints)
+			print(renderer.render(), file = outfile)
+		elif args.format == "quickfix":
+			for complaint in complaints:
+				complaint.print_vim_quickfix(outfile)
+		else:
+			raise Exception(NotImplemented)
+	elif args.action == "authorscan":
+		BibUtils(bibliography).author_scan(file = outfile)
+	elif args.action == "prettyprint":
+		bibliography.pretty_print(file = outfile)
+	else:
+		raise Exception(NotImplemented)
+

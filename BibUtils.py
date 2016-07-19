@@ -21,6 +21,8 @@
 #	Johannes Bauer <joe@johannes-bauer.com>
 #
 
+import json
+
 class BibUtils(object):
 	def __init__(self, bibliography):
 		self._bibliography = bibliography
@@ -44,7 +46,8 @@ class BibUtils(object):
 		text = text.replace(r"\"y", "ÿ")
 		return text
 
-	def author_scan(self):
+	def author_scan(self, file):
+		names = set()
 		for entry in self._bibliography:
 			for field in [ "author", "editor" ]:
 				authors = entry.rawtext("author")
@@ -65,4 +68,8 @@ class BibUtils(object):
 
 						firstname = " ".join(firstname)
 						lastname = " ".join(lastname)
-					print("> %s, %s" % (lastname, firstname))
+					names.add((lastname, firstname))
+
+			
+		names = [ { "firstname": firstname, "lastname": lastname } for (firstname, lastname) in sorted(names) ]
+		print(json.dumps(names), file = file)
