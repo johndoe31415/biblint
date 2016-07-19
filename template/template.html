@@ -1,0 +1,54 @@
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<style>
+			<%include file="style.css" />
+		</style>
+	</head>
+
+<body>
+
+<table>
+	<thead>
+	</thead>
+	<tbody>
+		%for c in complaints:
+			<tr>
+				<td>
+					${c.lintclass.name}
+					<div class="description">${c.description}</div>
+				</td>
+				<td>
+					%if c.bibsource is not None:
+						<div class="author">${c.bibsource.rawtext("author")}</div>
+						<div class="title">${c.bibsource.rawtext("title")}</div>
+					%endif
+				</td>
+				<td>
+					%if c.sourcecnt == 1:
+						${c.getsource(0)}
+					%else:
+						<ul>
+						%for (index, offense) in enumerate(c.sources):
+							<li>${c.getsource(index)}</li>
+						%endfor
+						</ul>
+					%endif
+				</td>
+
+				<td>
+					%if c.uris is not None:
+						%for (name, uri) in c.uris.items():
+							<a href="${uri}">${name}</a>
+						%endfor
+					%else:
+						&nbsp;
+					%endif
+				</td>
+			</tr>
+		%endfor
+	</tbody>
+</table>
+</body>
+</html>

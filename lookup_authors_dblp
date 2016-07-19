@@ -1,0 +1,42 @@
+#!/usr/bin/python3
+import time
+import requests
+import sys
+import urllib.parse
+from XMLParser import XMLParser
+
+authors = set()
+with open(sys.argv[1]) as f:
+	for line in f:
+		line = line.rstrip("\r\n")
+		if line.startswith("> "):
+			author = line[2:]
+			authors.add(author)
+
+
+with open("author_lookup.txt", "a") as f:
+	for author in sorted(authors):
+		url = "http://dblp.uni-trier.de/search/author?xauthor=%s" % (urllib.parse.quote_plus(author))
+		reply = requests.get(url)
+		node = XMLParser().parse(reply.text)
+
+		orig_author = author.split(", ")
+		orig_author = " ".join(reversed(orig_author))
+		orig_author = orig_author.replace(".", "")
+		print(orig_author, file = f)
+
+		if node.getchild("author") is None:
+			print("    -", file = f)
+		else:
+			authors = [ ]
+			for author in node.author:
+				authors.append(author.getstrippedcdata().replace(".", ""))
+			authors.sort()
+			for author in authors:
+				if author == orig_author:
+					print(" -> %s" % (author), file = f)
+				else:
+					print("    %s" % (author), file = f)
+		print(file = f)
+		f.flush()
+		time.sleep(1)

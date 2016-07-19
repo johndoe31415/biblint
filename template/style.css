@@ -1,0 +1,22 @@
+body {
+	font-family: Sans-Serif;
+	font-size: 75%;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+td {
+	padding: 4px 10px 4px 4px;
+	vertical-align: top;
+}
+
+tr:nth-child(even) {
+    background-color: #eee;
+}
+
+tr:nth-child(odd) {
+    background-color: #ccc;
+}
+

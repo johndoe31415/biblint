@@ -1,0 +1,8 @@
+#!/bin/bash
+#
+#
+
+rm -f bibtest.aux bibtest.log bibtest.pdf bibtest.bcf
+pdflatex bibtest.tex
+bibtex bibtest
+pdflatex bibtest.tex
