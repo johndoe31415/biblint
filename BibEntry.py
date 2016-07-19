@@ -1,7 +1,7 @@
 #
 #	biblint - Static checking of BibTeX files to find errors or inconsistencies.
 #	Copyright (C) 2016-2016 Johannes Bauer
-#	
+#
 #	This file is part of biblint.
 #
 #	biblint is free software; you can redistribute it and/or modify
@@ -28,16 +28,16 @@ import collections
 class BibEntry(object):
 	_key_value_re = re.compile("^\s*(?P<key>[-_a-zA-Z0-9]+)\s*=\s*(?P<value>.*)")
 	_parsed_part = collections.namedtuple("ParsedPart", [ "text", "quotelvl" ])
-	_preferred_order = [ 
-			"author", "title", "shorttitle", "editor", 
+	_preferred_order = [
+			"author", "title", "shorttitle", "editor",
 			"series",
 			"journal", "articleno", "issue", "volume", "numpages", "pages",
 			"howpublished",
-			"booktitle", 
-			"edition", "publisher", "address", "isbn", "issn", 
+			"booktitle",
+			"edition", "publisher", "address", "isbn", "issn",
 			"school", "institution", "organization", "number", "location",
 			"year", "month", "day", "doi", "url", "urldate", "note",
-			"bibsource", "biburl", 
+			"bibsource", "biburl",
 			"bibdate", "timestamp", "added-at", "posted-at",
 			"language", "keywords", "tags", "abstract",
 			"ee", "masid", "acmid", "lccn",
@@ -68,7 +68,7 @@ class BibEntry(object):
 	@property
 	def filename(self):
 		return self._filename
-	
+
 	@property
 	def etype(self):
 		return self._etype
@@ -122,7 +122,7 @@ class BibEntry(object):
 		value = value.rstrip("\r\n\t ")
 		if value.endswith(","):
 			value = value[:-1]
-	
+
 		quotelvl = 0
 		start_by_quot = False
 		groups = [ ]
@@ -159,7 +159,7 @@ class BibEntry(object):
 	@property
 	def identifier(self):
 		return "%s %s (%s:%d)" % (self._etype, self._name, self._filename, self._lineno)
-	
+
 	def haskey(self, name):
 		return name in self._properties
 

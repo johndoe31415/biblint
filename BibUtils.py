@@ -1,7 +1,7 @@
 #
 #	biblint - Static checking of BibTeX files to find errors or inconsistencies.
 #	Copyright (C) 2016-2016 Johannes Bauer
-#	
+#
 #	This file is part of biblint.
 #
 #	biblint is free software; you can redistribute it and/or modify
@@ -70,6 +70,6 @@ class BibUtils(object):
 						lastname = " ".join(lastname)
 					names.add((lastname, firstname))
 
-			
+
 		names = [ { "firstname": firstname, "lastname": lastname } for (firstname, lastname) in sorted(names) ]
 		print(json.dumps(names), file = file)

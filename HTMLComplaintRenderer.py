@@ -1,7 +1,7 @@
 #
 #	biblint - Static checking of BibTeX files to find errors or inconsistencies.
 #	Copyright (C) 2016-2016 Johannes Bauer
-#	
+#
 #	This file is part of biblint.
 #
 #	biblint is free software; you can redistribute it and/or modify

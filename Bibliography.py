@@ -1,7 +1,7 @@
 #
 #	biblint - Static checking of BibTeX files to find errors or inconsistencies.
 #	Copyright (C) 2016-2016 Johannes Bauer
-#	
+#
 #	This file is part of biblint.
 #
 #	biblint is free software; you can redistribute it and/or modify
@@ -30,7 +30,7 @@ class Bibliography(object):
 	_END_ENTRY_RE = re.compile("^\s*},?\s*")
 	_SUPPRESSION_RE = re.compile("^%\s+LINT\s+(?P<suppress>[^\s]+)(\s+(?P<description>.+))?")
 	_Suppression = collections.namedtuple("Suppression", [ "suppress", "description" ])
-	
+
 	def __init__(self, filenames):
 		self._entries = [ ]
 		for filename in filenames:
@@ -63,7 +63,7 @@ class Bibliography(object):
 					suppressions = [ ]
 					self._entries.append(current_entry)
 					continue
-				
+
 				result = self._SUPPRESSION_RE.match(line)
 				if result:
 					result = result.groupdict()

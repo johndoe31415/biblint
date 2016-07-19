@@ -35,7 +35,7 @@ class FriendlyArgumentParser(argparse.ArgumentParser):
 
 	def setsilenterror(self, silenterror):
 		self.__silent_error = silenterror
-	
+
 	def set_additional_help_callback(self, callback):
 		self.__help_callback = callback
 

@@ -1,7 +1,7 @@
 #
 #	biblint - Static checking of BibTeX files to find errors or inconsistencies.
 #	Copyright (C) 2016-2016 Johannes Bauer
-#	
+#
 #	This file is part of biblint.
 #
 #	biblint is free software; you can redistribute it and/or modify
@@ -25,7 +25,7 @@ import re
 import urllib.parse
 import collections
 
-class BibEntryTools(object):	
+class BibEntryTools(object):
 	def title_keywords_search(bibentry, urlencode = False):
 		title = bibentry["title"]
 		title = title.rstrip("},\"").lstrip("{\"")
@@ -66,7 +66,7 @@ class BibliographyTools(object):
 		for entry in bibliography:
 			title = BibEntryTools.readable_title(entry)
 			titles_by_index[entry.index] = title
-		
+
 		# Remove exact matches first
 		indices_by_title = collections.defaultdict(list)
 		for (index, title) in titles_by_index.items():
@@ -83,7 +83,7 @@ class MiscTools(object):
 		result = cls._ISBN13_RE.fullmatch(isbn)
 		if result is not None:
 			return True
-		
+
 		result = cls._ISBN10_RE.fullmatch(isbn)
 		if result is not None:
 			return True
@@ -130,7 +130,7 @@ class MiscTools(object):
 		isbn = isbn.replace("-", "").replace(" ", "")
 		int_isbn = [ 9, 7, 8 ] + [ int(x) if x.isdigit() else 10 for x in isbn ][:-1]
 		checksum = cls.isbn_calc_checksum_digit(int_isbn)
-		
+
 		isbn = "".join(str(x) for x in int_isbn) + checksum
 
 		return isbn[0 : 3] + "-" + isbn[3] + "-" + isbn[4 : 7] + "-" + isbn[7 : 12] + "-" + isbn[12]

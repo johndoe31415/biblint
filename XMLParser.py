@@ -116,7 +116,7 @@ class XMLNode():
 		assert(isinstance(node, XMLNode))
 		self._children.append(node)
 		return node
-	
+
 	def getallchildren(self):
 		"""Return an iterator over all children."""
 		return iter(self._children)
@@ -282,7 +282,7 @@ class XMLNode():
 					break
 				cnt += 1
 		return result
-	
+
 	def get(self, key, defaultvalue = None):
 		"""Get a attribute of the node. Returns None if the attribute does not
 		exist in the attribute dictionary."""
@@ -400,7 +400,7 @@ class XMLParser():
 		self._rootnode = None
 		self._curnode = None
 
-		self._parser = xml.parsers.expat.ParserCreate()			
+		self._parser = xml.parsers.expat.ParserCreate()
 		self._parser.StartElementHandler = self._startElementHandler
 		self._parser.EndElementHandler = self._endElementHandler
 		self._parser.CharacterDataHandler = self._cDataHandler
@@ -422,7 +422,7 @@ class XMLParser():
 
 	def _cDataHandler(self, cdata):
 		self._curnode.appendcdata(cdata)
-	
+
 	def parsehandle(self, filehdl):
 		"""Parse the given file handle, which has to be opened in binary mode
 		(e.g. sys.stdin.buffer) and return the root node."""
@@ -432,7 +432,7 @@ class XMLParser():
 	def parsefile(self, filename):
 		"""Parse the given XML file and return the root node."""
 		return self.parsehandle(open(filename, "rb"))
-	
+
 	def parse(self, xmltext):
 		"""Parse the given XML text and return the root node."""
 		self._parser.Parse(xmltext)

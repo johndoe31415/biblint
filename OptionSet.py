@@ -1,7 +1,7 @@
 #
 #	biblint - Static checking of BibTeX files to find errors or inconsistencies.
 #	Copyright (C) 2016-2016 Johannes Bauer
-#	
+#
 #	This file is part of biblint.
 #
 #	biblint is free software; you can redistribute it and/or modify
@@ -40,7 +40,7 @@ class OptionSet(object):
 		else:
 			return set([ element ])
 
-	def parse(self, string):		
+	def parse(self, string):
 		string = string.lower().split(":")
 		result = set()
 		for entry in string:
@@ -52,7 +52,7 @@ class OptionSet(object):
 				entry = entry[1:]
 			else:
 				mode = "+"
-			
+
 			change_set = self._get_set(entry)
 			if mode == "+":
 				result |= change_set

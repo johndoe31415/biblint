@@ -1,7 +1,7 @@
 #
 #	biblint - Static checking of BibTeX files to find errors or inconsistencies.
 #	Copyright (C) 2016-2016 Johannes Bauer
-#	
+#
 #	This file is part of biblint.
 #
 #	biblint is free software; you can redistribute it and/or modify
@@ -40,15 +40,15 @@ class OffenseSource(object):
 		self._colno = colno
 		self._srctype = srctype
 		self._bibentry = kwargs.get("bibentry")
-	
+
 	@property
 	def filename(self):
 		return self._filename
-	
+
 	@property
 	def lineno(self):
 		return self._lineno
-	
+
 	@property
 	def colno(self):
 		return self._colno
@@ -64,12 +64,12 @@ class OffenseSource(object):
 
 	@classmethod
 	def _from_bibentry(cls, entry, fieldname):
-		return cls(filename = entry.filename, lineno = entry.lineof(fieldname), colno = 1, srctype = "bib", bibentry = entry) 
+		return cls(filename = entry.filename, lineno = entry.lineof(fieldname), colno = 1, srctype = "bib", bibentry = entry)
 
 	@classmethod
 	def from_bibentries(cls, entries, fieldname = None):
 		return [ cls._from_bibentry(entry = entry, fieldname = fieldname) for entry in entries ]
-	
+
 	@classmethod
 	def from_bibentry(cls, entry, fieldname = None):
 		return cls.from_bibentries([ entry ], fieldname = fieldname)
@@ -131,15 +131,15 @@ class LintOffense(object):
 	@property
 	def sources(self):
 		return self._sources
-	
+
 	@property
 	def description(self):
 		return self._description
-	
+
 	@property
 	def uris(self):
 		return self._uris
-	
+
 	@property
 	def expect_field(self):
 		return self._expect_field
@@ -151,7 +151,7 @@ class LintOffense(object):
 	@property
 	def cmpkey(self):
 		return (self._order, self._sources[0].filename, self._sources[0].lineno, self.sources[0].colno, self._lintclass.name)
-	
+
 	def short_dump(self, file):
 		sources = ", ".join(str(source) for source in self._sources)
 		text = "%s: %s" % (sources, self.description)
@@ -175,7 +175,7 @@ class LintOffense(object):
 		print(file = file)
 
 	def to_dict(self):
-		data = { 
+		data = {
 			"sources":			[ source.to_dict() for source in self._sources ],
 			"class":			self.lintclass.name,
 			"description":		self.description,
@@ -199,10 +199,10 @@ class LintOffense(object):
 			}
 			#print("%(filename)s>%(linenumber)d:%(columnnumber)d:%(errortype)s:%(errornumber)s:%(errormessage)s" % substitutions, file = f)
 			print("%(filename)s:%(linenumber)d:%(columnnumber)d:%(errormessage)s" % substitutions, file = f)
-	
+
 	def __eq__(self, other):
 		return self.cmpkey == other.cmpkey
-	
+
 	def __lt__(self, other):
 		return self.cmpkey < other.cmpkey
 
@@ -216,7 +216,7 @@ class BibLintCheck(object):
 		self._arguments = arguments
 		self._bibliography = bibliography
 		self._citations = citations
-	
+
 	@property
 	def args(self):
 		return self._arguments
@@ -224,7 +224,7 @@ class BibLintCheck(object):
 	@property
 	def bibliography(self):
 		return self._bibliography
-	
+
 	@property
 	def citations(self):
 		return self._citations
@@ -286,13 +286,13 @@ class _CheckUnquotedAbbreviations(BibLintCheck):
 	name = "entries-with-unquoted-abbreviations"
 	description = """
 	Finds underquoted abbreviations in the title. For example, if the title was set to
-	
+
 	title = {How to use AES}
-	
+
 	this could become the unintended
-	
+
 	How to use aes
-	
+
 	if the abbreviation AES was not enclosed by curly braces.
 	"""
 	def check_entry(self, entry):
@@ -310,13 +310,13 @@ class _CheckUnquotedNames(BibLintCheck):
 	name = "entries-with-unquoted-names"
 	description = """
 	Finds unquoted names in the title. For example, a BibTeX entry that had
-	
+
 	title = {How to use the	Internet}
-	
+
 	could become the unintended
-	
+
 	How to use the internet
-	
+
 	if the word "Internet" was not enclosed by curly braces. This only works for a certain hardcoded list of names right now and will probably only fit your purpose if you extend the list manually by editing the code.
 	"""
 	def check_entry(self, entry):
@@ -333,10 +333,10 @@ class _CheckUnquotedNames(BibLintCheck):
 class _CheckOverquotedAbbreviations(BibLintCheck):
 	name = "entries-with-overquoted-title"
 	description = """
-	Finds overquoted titles. For example, for 
-	
+	Finds overquoted titles. For example, for
+
 	title = {{How To Use The Internet}}
-	
+
 	it would advise you that there are multiple words in one huge curly brace. This might be unintentional.
 	"""
 	def check_entry(self, entry):
@@ -370,20 +370,20 @@ class _CheckUniformDOIUrl(BibLintCheck):
 	name = "check-uniform-doi-url"
 	description = """
 	For entries which have a DOI present, checks that the URL points to
-	
-	https://dx.doi.org/${doi} 
-	
+
+	https://dx.doi.org/${doi}
+
 	An exception are RFCs, which should also have a DOI but a different URL. For RFCs, it expects
-	
+
 	https://tools.ietf.org/rfc/rfc${no}.txt
-	
+
 	to be set as the URL. RFCs are detected by having a citation name of rfc(\d+). This check does not issue any warnings if no DOI is present at all.
 	"""
 	def check_entry(self, entry):
 		if entry.haskey("doi"):
 			# Definitely has DOI set
 			expect_url = BibEntryTools.expected_doi_url(entry)
-			
+
 			# Make an exception for RFCs however
 			rfc_no = BibEntryTools.is_rfc_reference(entry)
 			if rfc_no is not None:
@@ -396,7 +396,7 @@ class _CheckUniformDOIUrl(BibLintCheck):
 					yield LintOffense(lintclass = self.__class__, sources = OffenseSource.from_bibentry(entry, fieldname = "url"), description = "DOI present, but URL does not point to it.", expect_field = ("url", expect_url))
 			else:
 				yield LintOffense(lintclass = self.__class__, sources = OffenseSource.from_bibentry(entry), description = "DOI present, but no URL present at all.", expect_field = ("url", expect_url))
-		
+
 
 class _CheckMissingDOIUrl(BibLintCheck):
 	name = "check-missing-doi"
@@ -411,7 +411,7 @@ class _CheckMissingDOIUrl(BibLintCheck):
 				"ieee":		("IEEE", "http://ieeexplore.ieee.org/search/searchresult.jsp?newsearch=true&queryText=%s"),
 				"springer":	("Springer", "http://link.springer.com/search?query=%s"),
 				"acm":		("ACM", "http://dl.acm.org/results.cfm?query=%s&Go.x=0&Go.y=0"),
-				"elsevier":	("ACM", "https://www.elsevier.com/search-results?query=%s&labels=all"),				
+				"elsevier":	("ACM", "https://www.elsevier.com/search-results?query=%s&labels=all"),
 			}
 			orga = None
 			for (pattern, (organame, searchtemplate)) in known_organizations.items():
@@ -576,13 +576,13 @@ class _CheckUndefinedCitations(BibLintCheck):
 		if self.citations is None:
 			# No TeX file
 			return
-			
+
 		undefined_citation_names = set(self.citations) - set(bibentry.name for bibentry in self.bibliography)
 		for undefined_citation_name in undefined_citation_names:
 			for citation in self.citations.getbyname(undefined_citation_name):
 				source = OffenseSource(filename = citation.filename, lineno = citation.lineno, colno = citation.colno, srctype = "tex")
 				yield LintOffense(lintclass = self.__class__, sources = [ source ], description = "Citation entry \"%s\" does not appear in BibTeX source." % (undefined_citation_name), order = -1)
-			
+
 
 known_lint_checks = [ ]
 for (lint_class_name, lint_class) in list(globals().items()):
