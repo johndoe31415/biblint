@@ -26,6 +26,11 @@ def whole_name_fml(author):
 	else:
 		return author["firstname"] + " " + author["midname"] + " " + author["lastname"]
 
+def names_equal(n1, n2):
+	n1 = n1.replace(".", "")
+	n2 = n2.replace(".", "")
+	return n1 == n2
+
 db = SQLite("author_scan_cache.sqlite3")
 db.exec_mayfail_commit("""
 	CREATE TABLE dblp_cache (
@@ -63,7 +68,7 @@ for author in authors:
 			authors.append(author.getstrippedcdata().replace(".", ""))
 		authors.sort()
 		for author in authors:
-			if author == author_name:
+			if names_equal(author, author_name):
 				print(" -> %s" % (author))
 			else:
 				print("    %s" % (author))

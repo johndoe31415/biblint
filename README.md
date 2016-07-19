@@ -280,6 +280,9 @@ B. Preneel and the other time as Bart Preneel). For this, simply run the
 authors.json through the given script:
 
 	$ ./lookup_authors_dblp authors.json
+	Richard L Anderson
+	 -> Richard L Anderson
+
 	Ross Anderson
 		Alan Ross Anderson
 	 -> Ross Anderson
@@ -287,20 +290,23 @@ authors.json through the given script:
 		Ross P Anderson
 
 	Andreas G. Andreou
-		Andreas G Andreou
+	 -> Andreas G Andreou
 
 	Adrian Antipa
 	 -> Adrian Antipa
 
 	Kazumaro Aoki
 	 -> Kazumaro Aoki
-	
-Note that it'll cache URL queries in a
-SQLite database author_scan_cache.sqlite3 in order not to load the DBLP server
-unnecessarily. Please not that there's also rate limiting in effect in order to
-distribute the DBLP load. I'll politely ask for you not to disable it. I would
-hate for them to discontinue their incredibly useful machine-readable
-interface. Don't ruin it for everyone, please. :-)
+
+This means you'll get a list of authors which highlights exact matches
+(as indicated by '->').
+
+Note that it'll cache URL queries in a SQLite database
+author_scan_cache.sqlite3 in order not to load the DBLP server unnecessarily.
+Please not that there's also rate limiting in effect in order to distribute the
+DBLP load. I'll politely ask for you not to disable it. I would hate for them
+to discontinue their incredibly useful machine-readable interface. Don't ruin
+it for everyone, please. :-)
 
 
 
