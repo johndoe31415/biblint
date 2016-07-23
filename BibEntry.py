@@ -24,6 +24,7 @@
 import re
 import sys
 import collections
+from Tools import TexTools
 
 class BibEntry(object):
 	_key_value_re = re.compile("^\s*(?P<key>[-_a-zA-Z0-9]+)\s*=\s*(?P<value>.*)")
@@ -45,6 +46,7 @@ class BibEntry(object):
 			"cites", "citedby",
 	]
 	_preferred_order_set = set(_preferred_order)
+	_PersonName = collections.namedtuple("PersonName", [ "firstname", "midname", "lastname" ])
 
 	def __init__(self, index, entrytype, name, filename, lineno):
 		self._index = index
@@ -154,6 +156,41 @@ class BibEntry(object):
 
 	def rawtext(self, fieldname):
 		return "".join(field.text for field in self.parsefield(fieldname))
+
+	def translittext(self, fieldname):
+		text = self.rawtext(fieldname)
+		text = TexTools.tex2unicode(text)
+		return text
+
+	def parsenames(self, fieldname = "author"):
+		authors = self.translittext(fieldname)
+		authors = re.split("\s+and\s+", authors)
+		for author in authors:
+			if ", " in author:
+				(lastname, firstnames) = author.split(", ")
+			else:
+				lastname_words = set([ "de", "der", "von", "van" ])
+				author = author.split(" ")
+				firstnames = author[:-1]
+				lastname = [ author[-1] ]
+
+				while len(firstnames) > 1 and firstnames[-1].lower() in lastname_words:
+					lastname.insert(0, firstnames[-1])
+					firstnames = firstnames[:-1]
+
+				firstnames = " ".join(firstnames)
+				lastname = " ".join(lastname)
+
+			firstnames = firstnames.split(" ")
+			if len(firstnames) == 1:
+				firstname = firstnames[0]
+				midname = None
+			else:
+				firstname = firstnames[0]
+				midname = " ".join(firstnames[1:])
+
+			yield self._PersonName(firstname = firstname, midname = midname, lastname = lastname)
+
 
 	@property
 	def name(self):

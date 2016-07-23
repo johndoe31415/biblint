@@ -25,6 +25,25 @@ import re
 import urllib.parse
 import collections
 
+class TexTools(object):
+	def tex2unicode(text):
+		text = text.replace(r"\'e", "é")
+		text = text.replace(r"\'o", "ó")
+		text = text.replace(r"\'i", "í")
+		text = text.replace(r"\'E", "É")
+		text = text.replace(r"\'O", "Ó")
+		text = text.replace(r"\'I", "Í")
+		text = text.replace(r"\"a", "ä")
+		text = text.replace(r"\"o", "ö")
+		text = text.replace(r"\"u", "ü")
+		text = text.replace(r"\"A", "Ä")
+		text = text.replace(r"\"O", "Ö")
+		text = text.replace(r"\"U", "Ü")
+		text = text.replace(r"\ss", "ß")
+		text = text.replace(r"\cc", "ç")
+		text = text.replace(r"\"y", "ÿ")
+		return text
+
 class BibEntryTools(object):
 	def title_keywords_search(bibentry, urlencode = False):
 		title = bibentry["title"]
