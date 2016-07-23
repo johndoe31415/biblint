@@ -19,7 +19,7 @@ def print_check_descriptions(f):
 	check_classes = [ cls for cls in known_lint_checks.values() ]
 	check_classes.sort(key = lambda cls: cls.name)
 	for check_cls in check_classes:
-		print("  %s" % (check_cls.name), file = f)
+		print(" - %s" % (check_cls.name), file = f)
 		description = textwrap.dedent(check_cls.description).strip()
 		for paragraph in description.split("\n"):
 			if paragraph != "":

@@ -583,6 +583,33 @@ class _CheckUndefinedCitations(BibLintCheck):
 				source = OffenseSource(filename = citation.filename, lineno = citation.lineno, colno = citation.colno, srctype = "tex")
 				yield LintOffense(lintclass = self.__class__, sources = [ source ], description = "Citation entry \"%s\" does not appear in BibTeX source." % (undefined_citation_name), order = -1)
 
+class _CheckNameConsistency(BibLintCheck):
+	name = "check-name-consistency"
+	description = """
+	Checks that author names are consistently written in terms of abbreviating their last names. For example, "F. Bar and M. Koo" is okay, "Foo Bar and Moo Koo" as well, but the mixing, i.e. "F. Bar and Moo Koo" is raised as an error.
+	"""
+	def check_entry(self, entry):
+		names = list(entry.parsenames("author"))
+		abbreviated = [ ("." in name.firstname) or len(name.firstname) == 1 for name in names ]
+		if len(set(abbreviated)) > 1:
+			print(names, abbreviated)
+			yield LintOffense(lintclass = self.__class__, sources = OffenseSource.from_bibentry(entry, fieldname = "author"), description = "Entry has inconsistent abbreviation of first names.")
+
+class _CheckFullFirstnames(BibLintCheck):
+	name = "check-full-first-names"
+	description = """
+	Checks that author first names are spelled out in full (i.e. not abbreviated). An exception to this are RFCs, where first names are abbreviated.
+	"""
+	def check_entry(self, entry):
+		if entry.name.startswith("rfc"):
+			# Ignore RFCs from this check
+			return
+		names = list(entry.parsenames("author"))
+		abbreviated = [ ("." in name.firstname) or len(name.firstname) == 1 for name in names ]
+		abbreviated = set(abbreviated)
+		if True in abbreviated:
+			yield LintOffense(lintclass = self.__class__, sources = OffenseSource.from_bibentry(entry, fieldname = "author"), description = "Entry has abbreviated first names of authors.")
+
 
 known_lint_checks = [ ]
 for (lint_class_name, lint_class) in list(globals().items()):
