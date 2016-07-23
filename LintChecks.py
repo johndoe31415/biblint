@@ -592,7 +592,6 @@ class _CheckNameConsistency(BibLintCheck):
 		names = list(entry.parsenames("author"))
 		abbreviated = [ ("." in name.firstname) or len(name.firstname) == 1 for name in names ]
 		if len(set(abbreviated)) > 1:
-			print(names, abbreviated)
 			yield LintOffense(lintclass = self.__class__, sources = OffenseSource.from_bibentry(entry, fieldname = "author"), description = "Entry has inconsistent abbreviation of first names.")
 
 class _CheckFullFirstnames(BibLintCheck):
