@@ -50,7 +50,7 @@ class BibUtils(object):
 		names = set()
 		for entry in self._bibliography:
 			for field in [ "author", "editor" ]:
-				authors = entry.rawtext("author")
+				authors = entry.rawtext(field)
 				authors = self._tex2unicode(authors)
 				authors = authors.split(" and ")
 				for author in authors:
