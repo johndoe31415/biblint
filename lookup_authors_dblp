@@ -21,10 +21,7 @@ with open(filename) as f:
 authors = json.loads(jsonstr)
 
 def whole_name_fml(author):
-	if author["midname"] is None:
-		return author["firstname"] + " " + author["lastname"]
-	else:
-		return author["firstname"] + " " + author["midname"] + " " + author["lastname"]
+	return " ".join(name for name in (author["firstname"], author["midname"], author["lastname"]) if name is not None)
 
 def names_equal(n1, n2):
 	n1 = n1.replace(".", "")
@@ -41,8 +38,9 @@ db.exec_mayfail_commit("""
 	);
 """)
 
-# Don't be a dick towards DBLP
-gracetime = 1.0
+# Don't be a dick towards DBLP (they'll respond with "Too Many Requests" when
+# this is just one second)
+gracetime = 1.5
 
 for author in authors:
 	author_name = whole_name_fml(author)
@@ -51,25 +49,39 @@ for author in authors:
 	reply = db.execute("SELECT data FROM dblp_cache WHERE uri = ?;", url).fetchone()
 	if reply is None:
 		reply = requests.get(url)
+		if reply.status_code != 200:
+			print("DBLP server sent HTTP %d" % (reply.status_code))
+			continue
 		reply = reply.text
 		db.execute("INSERT INTO dblp_cache (uri, data) VALUES (?, ?);", url, reply)
 		db.commit()
 		time.sleep(gracetime)
 	else:
 		reply = reply[0]
-	node = XMLParser().parse(reply)
 
-	print(author_name)
+	node = XMLParser().parse(reply)
+	if node is None:
+		print("Cannot parse DBLP reply.")
+		continue
+
+
 	if node.getchild("author") is None:
-		print("    -")
+		authors = [ ]
 	else:
 		authors = [ ]
 		for author in node.author:
 			authors.append(author.getstrippedcdata().replace(".", ""))
 		authors.sort()
-		for author in authors:
-			if names_equal(author, author_name):
-				print(" -> %s" % (author))
-			else:
-				print("    %s" % (author))
-	print()
+
+	have_right_author = any(names_equal(author, author_name) for author in authors)
+	if not have_right_author:
+		print(author_name)
+		if len(authors) == 0:
+			print("    -")
+		else:
+			for author in authors:
+				if names_equal(author, author_name):
+					print("  -> %s" % (author))
+				else:
+					print("     %s" % (author))
+		print()
