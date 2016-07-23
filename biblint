@@ -37,6 +37,7 @@ parser.add_argument("-o", "--output", metavar = "path", default = "-", help = "S
 parser.add_argument("-l", "--localdir", metavar = "path", default = "bibliography/", help = "Points to the directory where the local bibliography is expected. Defaults to %(default)s.")
 parser.add_argument("-a", "--action", choices = [ "lint", "authorscan", "prettyprint" ], default = "lint", help = "Specifies the action that should be done with the given files. Can be one of %(choices)s, default is %(default)s. 'lint' does a regular lint scan, 'authorscan' outputs a JSON file of all authors and 'prettyprint' emits the scanned bibliography in a pretty-printed version.")
 parser.add_argument("-t", "--tex", metavar = "texfile", type = str, action = "append", default = [ ], help = "Also parses a number of TeX files to be able to identify citations which are unused. Supports globbing in order to select multiple files.")
+parser.add_argument("--only-used", action = "store_true", help = "Lint only those bibliography entries that are referenced within the given TeX files.")
 parser.add_argument("-v", "--verbose", action = "store_true", help = "Be more verbose when checking")
 parser.add_argument("bibfiles", metavar = "bibfile", type = str, nargs = "+", help = "Bibliography files which should be checked")
 args = parser.parse_args(sys.argv[1:])
@@ -72,8 +73,11 @@ with outfile:
 			checker = check_class(args, bibliography, citations)
 			if check_class.linttype == "per_entry":
 				for entry in bibliography:
-					if entry.suppressed(check_class.name) and (not args.ignore_suppressions):
-						# Suppress this entry
+					if (not args.ignore_suppressions) and entry.suppressed(check_class.name):
+						# Ignore this entry because of active suppresion
+						continue
+					if args.only_used and (not citations.citation_used(entry.name)):
+						# Ignore this entry because it is never cited from TeX
 						continue
 
 					for complaint in checker.check_entry(entry):

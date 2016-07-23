@@ -45,6 +45,9 @@ class Citations(object):
 				line = line.rstrip("\r\n")
 				self._parseline(lineno, filename, line)
 
+	def citation_used(self, name):
+		return name in self._citations
+
 	def getbyname(self, name):
 		yield from self._citations[name]
 
