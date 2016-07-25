@@ -21,7 +21,6 @@
 #	Johannes Bauer <joe@johannes-bauer.com>
 #
 
-import collections
 import os.path
 import re
 try:
@@ -29,211 +28,7 @@ try:
 except ImportError:
 	fuzzywuzzy = None
 from Tools import BibEntryTools, BibliographyTools, MiscTools
-
-_ABBRV_RE = re.compile("([A-Z][0-9a-z]*[A-Z]+[A-Za-z0-9]*)")
-
-class OffenseSource(object):
-	def __init__(self, filename, lineno, colno, srctype, **kwargs):
-		assert(srctype in [ "bib", "tex" ])
-		self._filename = filename
-		self._lineno = lineno
-		self._colno = colno
-		self._srctype = srctype
-		self._bibentry = kwargs.get("bibentry")
-
-	@property
-	def filename(self):
-		return self._filename
-
-	@property
-	def lineno(self):
-		return self._lineno
-
-	@property
-	def colno(self):
-		return self._colno
-
-	@property
-	def srctype(self):
-		return self._srctype
-
-	@property
-	def bibentry(self):
-		assert(self._srctype == "bib")
-		return self._bibentry
-
-	@classmethod
-	def _from_bibentry(cls, entry, fieldname):
-		return cls(filename = entry.filename, lineno = entry.lineof(fieldname), colno = 1, srctype = "bib", bibentry = entry)
-
-	@classmethod
-	def from_bibentries(cls, entries, fieldname = None):
-		return [ cls._from_bibentry(entry = entry, fieldname = fieldname) for entry in entries ]
-
-	@classmethod
-	def from_bibentry(cls, entry, fieldname = None):
-		return cls.from_bibentries([ entry ], fieldname = fieldname)
-
-	def to_dict(self):
-		data = {
-			"filename":		self.filename,
-			"lineno":		self.lineno,
-			"colno":		self.colno,
-			"srctype":		self.srctype,
-			"specific":		{ },
-		}
-		if self.srctype == "bib":
-			for field in [ "author", "title" ]:
-				data["specific"][field] = self._bibentry.rawtext(field)
-		return data
-
-	def longstr(self):
-		if self.srctype == "bib":
-			return "%s:%d (%s): %s - %s" % (os.path.basename(self.filename), self.lineno, self._bibentry.name, self._bibentry.rawtext("author"), self._bibentry.rawtext("title"))
-		else:
-			return str(self)
-
-	def __str__(self):
-		if self.srctype == "bib":
-			return "%s:%d (%s)" % (os.path.basename(self.filename), self.lineno, self._bibentry.name)
-		else:
-			return "%s:%d:%d" % (os.path.basename(self.filename), self.lineno, self.colno)
-
-class LintOffense(object):
-	def __init__(self, lintclass, sources, description, **kwargs):
-		assert(all(kwarg in set([ "uris", "expect_field", "order" ]) for kwarg in kwargs))
-		self._lintclass = lintclass
-		self._sources = sources
-		self._description = description
-		self._uris = kwargs.get("uris")
-		self._expect_field = kwargs.get("expect_field")
-		self._order = kwargs.get("order", 0)
-
-	@property
-	def bibsource(self):
-		"""If a source is a bibentry, return that bibentry. Otherwise, reutrns
-		None."""
-		for source in self.sources:
-			if source.srctype == "bib":
-				return source.bibentry
-
-	@property
-	def sourcecnt(self):
-		return len(self.sources)
-
-	def getsource(self, index):
-		return self._sources[index]
-
-	@property
-	def lintclass(self):
-		return self._lintclass
-
-	@property
-	def sources(self):
-		return self._sources
-
-	@property
-	def description(self):
-		return self._description
-
-	@property
-	def uris(self):
-		return self._uris
-
-	@property
-	def expect_field(self):
-		return self._expect_field
-
-	@property
-	def order(self):
-		return self._order
-
-	@property
-	def cmpkey(self):
-		return (self._order, self._sources[0].filename, self._sources[0].lineno, self.sources[0].colno, self._lintclass.name)
-
-	def short_dump(self, file):
-		sources = ", ".join(str(source) for source in self._sources)
-		text = "%s: %s" % (sources, self.description)
-		if self.uris is not None:
-			text += " %s" % (" / ".join(self.uris.values()))
-		if self.expect_field is not None:
-			text += " Expect: %s = {%s}," % (self.expect_field[0], self._expect_field[1])
-		text += " [%s]" % (self._lintclass.name)
-		print(text, file = file)
-
-	def long_dump(self, file):
-		offenses = "\n".join(source.longstr() for source in self._sources)
-		print(self._lintclass.name, file = file)
-		print(offenses, file = file)
-		print("    %s" % (self.description), file = file)
-		if self.uris is not None:
-			for (name, uri) in self.uris.items():
-				print("    %s: %s" % (name, uri), file = file)
-		if self.expect_field is not None:
-			print("    Expect: %s = {%s}," % (self.expect_field[0], self._expect_field[1]), file = file)
-		print(file = file)
-
-	def to_dict(self):
-		data = {
-			"sources":			[ source.to_dict() for source in self._sources ],
-			"class":			self.lintclass.name,
-			"description":		self.description,
-			"uris":				self._uris,
-			"expect_field":		self.expect_field,
-		}
-		return data
-
-	def print_vim_quickfix(self, f):
-		for source in self.sources:
-			msg = "%s [%s]" % (self.description, self._lintclass.name)
-			if self.expect_field is not None:
-				msg += " %s = {%s}," % (self.expect_field[0], self.expect_field[1])
-			substitutions = {
-				"filename":		source.filename,
-				"linenumber":	source.lineno,
-				"columnnumber":	source.colno,
-				"errortype":	"E",
-				"errornumber":	self.lintclass.name,
-				"errormessage":	msg,
-			}
-			#print("%(filename)s>%(linenumber)d:%(columnnumber)d:%(errortype)s:%(errornumber)s:%(errormessage)s" % substitutions, file = f)
-			print("%(filename)s:%(linenumber)d:%(columnnumber)d:%(errormessage)s" % substitutions, file = f)
-
-	def __eq__(self, other):
-		return self.cmpkey == other.cmpkey
-
-	def __lt__(self, other):
-		return self.cmpkey < other.cmpkey
-
-
-class BibLintCheck(object):
-	name = None
-	description = None
-	linttype = "per_entry"
-
-	def __init__(self, arguments, bibliography, citations):
-		self._arguments = arguments
-		self._bibliography = bibliography
-		self._citations = citations
-
-	@property
-	def args(self):
-		return self._arguments
-
-	@property
-	def bibliography(self):
-		return self._bibliography
-
-	@property
-	def citations(self):
-		return self._citations
-
-	def check_entry(self, entry):
-		raise Exception(NotImplemented)
-
-	def check_all(self):
-		raise Exception(NotImplemented)
+from BaseLintChecks import BibLintCheck, LintOffense, OffenseSource
 
 class _CheckDuplicateEntriesByName(BibLintCheck):
 	name = "duplicate-entries-by-name"
@@ -287,20 +82,27 @@ class _CheckUnquotedAbbreviations(BibLintCheck):
 	description = """
 	Finds underquoted abbreviations in the title. For example, if the title was set to
 
+	```tex
 	title = {How to use AES}
+	```
 
 	this could become the unintended
 
+	```tex
 	How to use aes
+	```
 
 	if the abbreviation AES was not enclosed by curly braces.
 	"""
+	
+	_ABBRV_RE = re.compile("([A-Z][0-9a-z]*[A-Z]+[A-Za-z0-9]*)")
+	
 	def check_entry(self, entry):
 		for field in [ "title" ]:
 			parsed_title = entry.parsefield(field)
 			unquoted = [ part.text for part in parsed_title if part.quotelvl <= 1 ]
 			for part in unquoted:
-				result = _ABBRV_RE.search(part)
+				result = self._ABBRV_RE.search(part)
 				if result is not None:
 					abbreviation = result.groups(0)[0]
 					yield LintOffense(lintclass = self.__class__, sources = OffenseSource.from_bibentry(entry, fieldname = field), description = "Unquoted abbreviation '%s' in %s." % (abbreviation, field))
@@ -311,11 +113,15 @@ class _CheckUnquotedNames(BibLintCheck):
 	description = """
 	Finds unquoted names in the title. For example, a BibTeX entry that had
 
+	```tex
 	title = {How to use the	Internet}
+	```
 
 	could become the unintended
 
+	```
 	How to use the internet
+	```
 
 	if the word "Internet" was not enclosed by curly braces. This only works for a certain hardcoded list of names right now and will probably only fit your purpose if you extend the list manually by editing the code.
 	"""
@@ -335,7 +141,9 @@ class _CheckOverquotedAbbreviations(BibLintCheck):
 	description = """
 	Finds overquoted titles. For example, for
 
+	```tex
 	title = {{How To Use The Internet}}
+	```
 
 	it would advise you that there are multiple words in one huge curly brace. This might be unintentional.
 	"""
@@ -371,11 +179,15 @@ class _CheckUniformDOIUrl(BibLintCheck):
 	description = """
 	For entries which have a DOI present, checks that the URL points to
 
+	```
 	https://dx.doi.org/${doi}
+	```
 
 	An exception are RFCs, which should also have a DOI but a different URL. For RFCs, it expects
 
+	```
 	https://tools.ietf.org/rfc/rfc${no}.txt
+	```
 
 	to be set as the URL. RFCs are detected by having a citation name of rfc(\d+). This check does not issue any warnings if no DOI is present at all.
 	"""
@@ -423,7 +235,7 @@ class _CheckMissingDOIUrl(BibLintCheck):
 				# Probably has DOI set
 				text = "DOI probably present in metadata, but DOI field not set."
 			else:
-				text = "No DOI present anywhere in metadata."
+				text = "No DOI present anywhere in bibliography entry."
 
 			if orga is not None:
 				(organame, searchtemplate) = known_organizations[orga]
@@ -601,7 +413,7 @@ class _CheckFullFirstnames(BibLintCheck):
 	"""
 	def check_entry(self, entry):
 		if entry.name.startswith("rfc"):
-			# Ignore RFCs from this check
+			# Ignore RFCs from this check.
 			return
 		names = list(entry.parsenames("author"))
 		abbreviated = [ ("." in name.firstname) or len(name.firstname) == 1 for name in names ]
@@ -610,14 +422,4 @@ class _CheckFullFirstnames(BibLintCheck):
 			yield LintOffense(lintclass = self.__class__, sources = OffenseSource.from_bibentry(entry, fieldname = "author"), description = "Entry has abbreviated first names of authors.")
 
 
-known_lint_checks = [ ]
-for (lint_class_name, lint_class) in list(globals().items()):
-	if not isinstance(lint_class, type):
-		continue
-	if lint_class.__mro__[1] == BibLintCheck:
-		known_lint_checks.append(lint_class)
-_names = set(check.name for check in known_lint_checks)
-if len(_names) != len(known_lint_checks):
-	raise Exception("Lint checks do not have unique name.")
-known_lint_checks = { check.name: check for check in known_lint_checks }
 

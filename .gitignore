@@ -1,3 +1,4 @@
 __pycache__
 .*.swp
 author_scan_cache.sqlite3
+authors.json

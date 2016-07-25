@@ -21,19 +21,29 @@
 #	Johannes Bauer <joe@johannes-bauer.com>
 #
 
-try:
-	import mako.lookup
-except ImportError:
-	mako = None
+class _TextFragment(object):
+	def __init__(self, text, startoffset = offset):
+		self._text = text
+		self._offset = offset
 
-class HTMLComplaintRenderer(object):
-	def __init__(self, complaints):
-		self._complaints = complaints
+	@property
+	def text(self):
+		return self._text
 
-	def render(self):
-		if mako is None:
-			raise Exception("HTML support is unavailable without the python3-mako package installed.")
-		lookup = mako.lookup.TemplateLookup([ "template" ])
-		template = lookup.get_template("template.html")
-		result = template.render(complaints = self._complaints)
-		return result
+	def __str__(self):
+		return "\"%s\"" % (self._text)
+
+class TexPreprocessor(object):
+	def __init__(self, texfilename):
+		with open(texfilename) as f:
+			self._text = f.read()
+		self._words = None
+		self._sentences = None
+
+	def extract_words(self):
+		pass
+
+
+if __name__ == "__main__":
+	text = _TextFragment("foobar")
+	print(text)

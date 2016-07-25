@@ -25,10 +25,8 @@ import json
 import collections
 
 class BibUtils(object):
-
 	def __init__(self, bibliography):
 		self._bibliography = bibliography
-
 
 	def author_scan(self, file):
 		names = set()

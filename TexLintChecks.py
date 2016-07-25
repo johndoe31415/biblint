@@ -21,19 +21,14 @@
 #	Johannes Bauer <joe@johannes-bauer.com>
 #
 
-try:
-	import mako.lookup
-except ImportError:
-	mako = None
+from BaseLintChecks import TexLintCheck
 
-class HTMLComplaintRenderer(object):
-	def __init__(self, complaints):
-		self._complaints = complaints
+class _CheckWeaselWords(TexLintCheck):
+	name = "weasel-words"
+	description = """
+	Finds BibTeX entries which have the same cite name. This can lead to unexpected results in document and should usually not happen."""
+	linttype = "per-sentence"
+	
+	def check_texfile(self, texdata):
+		pass
 
-	def render(self):
-		if mako is None:
-			raise Exception("HTML support is unavailable without the python3-mako package installed.")
-		lookup = mako.lookup.TemplateLookup([ "template" ])
-		template = lookup.get_template("template.html")
-		result = template.render(complaints = self._complaints)
-		return result
