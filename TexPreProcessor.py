@@ -48,7 +48,7 @@ class _TextFragment(object):
 		(span_from, span_to) = span
 		length = span_to - span_from
 		print("Removing span [ %d; %d ] length %d" % (span_from, span_to, length))
-		
+
 		# Remove the span in the actual text
 		self._text = self._text[ : span_from] + self._text[span_to : ]
 
@@ -101,7 +101,7 @@ class _TextFragment(object):
 		span = self._offsetmap[index]
 		distance = span[1] - span[0]
 		return (index, qry_offset + distance)
-	
+
 	def translate_offset(self, qry_offset):
 		return self.translate_full_offset(qry_offset)[1]
 
@@ -157,7 +157,7 @@ if __name__ == "__main__":
 	assert(list(text) == [(0, 'F'), (1, 'o'), (2, 'o'), (100, 'X'), (200, 'Y'), (300, 'Z'), (1000, 'B'), (1001, 'a'), (1002, 'r')])
 	text.delete_span((3, 6))
 	assert(list(text) == [(0, 'F'), (1, 'o'), (2, 'o'), (1000, 'B'), (1001, 'a'), (1002, 'r')])
-	
+
 	# Test case with removal over multiple spans not starting in one
 	text = _TextFragment("FooBarKoo")
 	text._offsetmap = [ [ 0, 0 ], [3, 100], [4, 200], [5, 300], [6, 1000] ]
@@ -173,7 +173,7 @@ if __name__ == "__main__":
 	text.delete_regex("at ")
 	assert(text.translate_offset(text.text.index("33")) == 33)
 	assert(text.translate_offset(text.text.index("42")) == 42)
-	
+
 	# Remove long text
 	def assert_integrity(t):
 		assert(all(pos % 10 == int(char) for (pos, char) in t))
@@ -183,7 +183,7 @@ if __name__ == "__main__":
 	text.dump()
 	print(text._offsetmap)
 	assert_integrity(text)
-	
+
 	# Head remove test
 	text = _TextFragment("0123456789" * 3)
 	print("X")
@@ -193,7 +193,7 @@ if __name__ == "__main__":
 	assert_integrity(text)
 
 	# Multiple remove test
-	text = _TextFragment("0123456789" * 10)	
+	text = _TextFragment("0123456789" * 10)
 	text.delete_regex("7")
 	assert_integrity(text)
 	text.delete_regex("2.4")
