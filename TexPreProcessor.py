@@ -23,27 +23,64 @@
 
 import re
 import bisect
+import sys
 
 class _TextFragment(object):
 	def __init__(self, text):
 		self._text = text
 		self._offsetmap = [ [ 0, 0 ] ]
 
+	def _assert_offsetmap_integrity(self):
+		last_src = self._offsetmap[0][0]
+		if not last_src == 0:
+			raise AssertionError("offsetmap[0][0] is not starting with zero index.")
+		for (index, (src, dst)) in enumerate(self._offsetmap[1:]):
+			if src <= last_src:
+				raise AssertionError("offsetmap is not strictly monotonically increasing, error at index %d: %s" % (index + 1, str(self._offsetmap)))
+			last_src = src
+
 	@property
 	def text(self):
 		return self._text
 
 	def delete_span(self, span):
+		# Assign some helper variables first
 		(span_from, span_to) = span
+		length = span_to - span_from
+		print("Removing span [ %d; %d ] length %d" % (span_from, span_to, length))
+		
+		# Remove the span in the actual text
 		self._text = self._text[ : span_from] + self._text[span_to : ]
 
-		translated_from = self.translate_offset(span_from)
-		increase = span_to - span_from
-		if translated_from not in self._offsetmap:
-			self._offsetmap[translated_from] = translated_from + increase
-#		for (src_offset, dst_offset) in self._offsetmap.items():
-#			if src_offset > span_from:
-#				self._offsetmap[src_offset] += increase
+		# Then find out the current translated offset
+		(index_from, translated_from) = self.translate_full_offset(span_from)
+		(index_to, translated_to) = self.translate_full_offset(span_to)
+		print("Previously: offset %d is idx %d-%d (%s - %s), translated_offset end = %d" % (span_to, index_from, index_to, self._offsetmap[index_from], self._offsetmap[index_to], translated_to))
+
+		# Remove old spans first
+		print("PRE ", self._offsetmap)
+		self._offsetmap = self._offsetmap[ : index_from + 1 ] + self._offsetmap[index_to + 1 : ]
+		print("POST", self._offsetmap)
+
+		# Then insert new one
+		insert_index = index_from + 1
+		new_element = [ span_from, translated_to ]
+		print("New element: %s" % (new_element))
+
+		if self._offsetmap[index_from][0] == new_element[0]:
+			old_element = self._offsetmap[index_from]
+			print("Updating index of element at %d: %s -> %s" % (insert_index, old_element, new_element))
+			self._offsetmap[index_from] = new_element
+		else:
+			print("Inserting new element at %d: %s" % (insert_index, new_element))
+			self._offsetmap.insert(insert_index, new_element)
+
+		for i in range(insert_index + 1, len(self._offsetmap)):
+			self._offsetmap[i][0] -= length
+
+		# Only during debugging, check list after every modification
+		self._assert_offsetmap_integrity()
+		print()
 
 	def delete_regex(self, regex):
 		regex = re.compile(regex)
@@ -52,26 +89,30 @@ class _TextFragment(object):
 			deletions.append(deletion.span())
 		for span in reversed(deletions):
 			self.delete_span(span)
-			break
 
-	def translate_offset(self, qry_offset):
-		index = bisect.bisect_left(self._offsetmap, [ qry_offset, 0 ])
+	def translate_offset_index(self, qry_offset):
+		index = bisect.bisect_left(self._offsetmap, [ qry_offset + 1, 0 ]) - 1
+		if index == -1:
+			index = 0
+		return index
+
+	def translate_full_offset(self, qry_offset):
+		index = self.translate_offset_index(qry_offset)
 		span = self._offsetmap[index]
 		distance = span[1] - span[0]
-		return qry_offset + distance
-		print(index)
-
-		mapped_offset = 0
-		for (src_offset, dst_offset) in sorted(self._offsetmap.items()):
-			if qry_offset >= src_offset:
-				mapped_offset = dst_offset - src_offset
-			else:
-				break
-		return qry_offset + mapped_offset
+		return (index, qry_offset + distance)
+	
+	def translate_offset(self, qry_offset):
+		return self.translate_full_offset(qry_offset)[1]
 
 	def dump(self):
 		for (offset, char) in enumerate(self.text):
-			print("%2d %s" % (self.translate_offset(offset), char))
+			(index, xoffset) = self.translate_full_offset(offset)
+			print("%2d %2d %3d %s" % (offset, index, xoffset, char))
+
+	def __iter__(self):
+		for (offset, pos) in enumerate(self.text):
+			yield (self.translate_offset(offset), pos)
 
 	def __str__(self):
 		return "\"%s\"" % (self.text)
@@ -88,16 +129,66 @@ class TexPreprocessor(object):
 
 
 if __name__ == "__main__":
-#	with open("test.tex") as f:
-#		text = f.read()
+	# Simple test case
+	text = _TextFragment("AaBbCcDdEe")
+	text._offsetmap = [ [ 0, 0 ], [ 2, 10 ], [ 4, 20 ], [ 6, 30 ], [ 8, 40 ] ]
+	assert(list(text) == [(0, 'A'), (1, 'a'), (10, 'B'), (11, 'b'), (20, 'C'), (21, 'c'), (30, 'D'), (31, 'd'), (40, 'E'), (41, 'e')])
 
+	# Regular test case with removals within spans
+	text = _TextFragment("Foo^^bar Moo^^koo Blah^^Blubb")
+	text._offsetmap = [ [ 0, 0 ], [ 9, 100 ], [ 18, 200 ] ]
+	assert(list(text) == [(0, 'F'), (1, 'o'), (2, 'o'), (3, '^'), (4, '^'), (5, 'b'), (6, 'a'), (7, 'r'), (8, ' '), (100, 'M'), (101, 'o'), (102, 'o'), (103, '^'), (104, '^'), (105, 'k'), (106, 'o'), (107, 'o'), (108, ' '), (200, 'B'), (201, 'l'), (202, 'a'), (203, 'h'), (204, '^'), (205, '^'), (206, 'B'), (207, 'l'), (208, 'u'), (209, 'b'), (210, 'b')])
+	text.delete_span((3, 5))
+	assert(list(text) == [(0, 'F'), (1, 'o'), (2, 'o'), (5, 'b'), (6, 'a'), (7, 'r'), (8, ' '), (100, 'M'), (101, 'o'), (102, 'o'), (103, '^'), (104, '^'), (105, 'k'), (106, 'o'), (107, 'o'), (108, ' '), (200, 'B'), (201, 'l'), (202, 'a'), (203, 'h'), (204, '^'), (205, '^'), (206, 'B'), (207, 'l'), (208, 'u'), (209, 'b'), (210, 'b')])
+	text.delete_span((10, 12))
+	assert(list(text) == [(0, 'F'), (1, 'o'), (2, 'o'), (5, 'b'), (6, 'a'), (7, 'r'), (8, ' '), (100, 'M'), (101, 'o'), (102, 'o'), (105, 'k'), (106, 'o'), (107, 'o'), (108, ' '), (200, 'B'), (201, 'l'), (202, 'a'), (203, 'h'), (204, '^'), (205, '^'), (206, 'B'), (207, 'l'), (208, 'u'), (209, 'b'), (210, 'b')])
+	text.delete_span((18, 20))
+	assert(list(text) == [(0, 'F'), (1, 'o'), (2, 'o'), (5, 'b'), (6, 'a'), (7, 'r'), (8, ' '), (100, 'M'), (101, 'o'), (102, 'o'), (105, 'k'), (106, 'o'), (107, 'o'), (108, ' '), (200, 'B'), (201, 'l'), (202, 'a'), (203, 'h'), (206, 'B'), (207, 'l'), (208, 'u'), (209, 'b'), (210, 'b')])
+
+	# Test case with removal at the beginning
+	text = _TextFragment("Foobar")
+	assert(list(text) == [(0, 'F'), (1, 'o'), (2, 'o'), (3, 'b'), (4, 'a'), (5, 'r')] )
+	text.delete_span((0, 3))
+	assert(list(text) == [(3, 'b'), (4, 'a'), (5, 'r')] )
+
+	# Test case with removal over multiple spans
+	text = _TextFragment("FooXYZBar")
+	text._offsetmap = [ [0, 0], [ 3, 100 ],[ 4, 200 ],[ 5, 300 ], [6, 1000] ]
+	assert(list(text) == [(0, 'F'), (1, 'o'), (2, 'o'), (100, 'X'), (200, 'Y'), (300, 'Z'), (1000, 'B'), (1001, 'a'), (1002, 'r')])
+	text.delete_span((3, 6))
+	assert(list(text) == [(0, 'F'), (1, 'o'), (2, 'o'), (1000, 'B'), (1001, 'a'), (1002, 'r')])
+	
+	# Test case with removal over multiple spans not starting in one
+	text = _TextFragment("FooBarKoo")
+	text._offsetmap = [ [ 0, 0 ], [3, 100], [4, 200], [5, 300], [6, 1000] ]
+	assert(list(text) == [(0, 'F'), (1, 'o'), (2, 'o'), (100, 'B'), (200, 'a'), (300, 'r'), (1000, 'K'), (1001, 'o'), (1002, 'o')])
+	text.delete_span((1, 7))
+	assert(text._offsetmap == [ [ 0, 0 ], [ 1, 1001 ] ])
+	assert(list(text) == [(0, 'F'), (1001, 'o'), (1002, 'o')])
+
+	# Number test
 	text = _TextFragment("Numbers at eleven and another at 33 at at 42.")
+	assert(text.translate_offset(text.text.index("33")) == 33)
+	assert(text.translate_offset(text.text.index("42")) == 42)
+	text.delete_regex("at ")
+	assert(text.translate_offset(text.text.index("33")) == 33)
+	assert(text.translate_offset(text.text.index("42")) == 42)
+
+	# Multiple remove test
+	def assert_integrity(t):
+		assert(all(pos % 10 == int(char) for (pos, char) in t))
+	text = _TextFragment("0123456789" * 10)	
+	text.delete_regex("7")
+	assert_integrity(text)
+	text.delete_regex("2.4")
+	assert_integrity(text)
 	text.dump()
-	print("-" * 120)
-	for i in range(4):
-		text.delete_regex("at ")
-		text.dump()
-		print(text._offsetmap)
-		print()
-
-
+	text.delete_regex("0")
+	text.dump()
+	
+	assert_integrity(text)
+#	text.delete_regex("915")
+#	assert_integrity(text)
+#	text.delete_regex("15686")
+#	assert_integrity(text)
+	text.dump()
