@@ -173,20 +173,36 @@ if __name__ == "__main__":
 	text.delete_regex("at ")
 	assert(text.translate_offset(text.text.index("33")) == 33)
 	assert(text.translate_offset(text.text.index("42")) == 42)
-
-	# Multiple remove test
+	
+	# Remove long text
 	def assert_integrity(t):
 		assert(all(pos % 10 == int(char) for (pos, char) in t))
+	text = _TextFragment("0123456789" * 3)
+	print("X")
+	text.delete_regex("012345")
+	text.dump()
+	print(text._offsetmap)
+	assert_integrity(text)
+	
+	# Head remove test
+	text = _TextFragment("0123456789" * 3)
+	print("X")
+	text.delete_regex("01234")
+	text.dump()
+	print(text._offsetmap)
+	assert_integrity(text)
+
+	# Multiple remove test
 	text = _TextFragment("0123456789" * 10)	
 	text.delete_regex("7")
 	assert_integrity(text)
 	text.delete_regex("2.4")
 	assert_integrity(text)
-	text.dump()
 	text.delete_regex("0")
-	text.dump()
-	
 	assert_integrity(text)
+
+
+
 #	text.delete_regex("915")
 #	assert_integrity(text)
 #	text.delete_regex("15686")
