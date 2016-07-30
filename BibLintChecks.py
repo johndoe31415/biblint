@@ -393,7 +393,7 @@ class _CheckUndefinedCitations(BibLintCheck):
 		for undefined_citation_name in undefined_citation_names:
 			for citation in self.citations.getbyname(undefined_citation_name):
 				source = OffenseSource(filename = citation.filename, lineno = citation.lineno, colno = citation.colno, srctype = "tex")
-				yield LintOffense(lintclass = self.__class__, sources = [ source ], description = "Citation entry \"%s\" does not appear in BibTeX source." % (undefined_citation_name), order = -1)
+				yield LintOffense(lintclass = self.__class__, sources = [ source ], description = "Citation entry \"%s\" does not appear in BibTeX source." % (undefined_citation_name))
 
 class _CheckNameConsistency(BibLintCheck):
 	name = "check-name-consistency"

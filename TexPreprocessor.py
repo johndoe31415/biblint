@@ -24,6 +24,7 @@
 import re
 import bisect
 import sys
+from LineMapper import LineMapper
 
 class _TextFragment(object):
 	def __init__(self, text):
@@ -154,16 +155,6 @@ class _TextFragment(object):
 	def __str__(self):
 		return "\"%s\"" % (self.text)
 
-class LineColMapper(object):
-	def __init__(self, text):
-		# TODO IMPLEMENT ME
-		pass
-
-	def resolve(self, offset):
-		# TODO IMPLEMENT ME
-		(lineno, colno) = (1, offset)
-		return (lineno, colno)
-
 class TexPreprocessor(object):
 	# These are removed completely
 	_REMOVE_COMPLETELY_ENVIRONMENTS = ( "listing", "figure", "table", "equation" )
@@ -207,13 +198,13 @@ class TexPreprocessor(object):
 	_WORD_RE = re.compile("[^ \n]+")
 
 	# Words that do not conclude a sentence
-	_NO_END_OF_SENTENCE = re.compile(r"\(?(Sect|Tab|List|i\.e|e\.g|Fig)[\.:;]")
+	_NO_END_OF_SENTENCE = re.compile(r"\(?(Sect|Tab|List|Fig|i\.e|e\.g)[\.:;]")
 
 	def __init__(self, texfilename):
 		self._texfilename = texfilename
 		with open(texfilename) as f:
 			self._text = f.read()
-		self._line_col_mapper = LineColMapper(self._text)
+		self._line_col_mapper = LineMapper(self._text)
 		self._text = _TextFragment(self._text)
 		self._words = [ ]
 		self._sentences = [ ]
