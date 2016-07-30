@@ -200,6 +200,7 @@ class TexPreprocessor(object):
 	_NO_END_OF_SENTENCE = re.compile(r"\(?(Sect|Tab|List|i\.e|e\.g|Fig)[\.:;]")
 
 	def __init__(self, texfilename):
+		self._texfilename = texfilename
 		with open(texfilename) as f:
 			self._text = f.read()
 		self._text = _TextFragment(self._text)
@@ -334,14 +335,6 @@ class TexPreprocessor(object):
 
 	def __str__(self):
 		return "TeX text, %d characters, %d words and %d sentences" % (len(self._text), len(self._words), len(self._sentences))
-
-x = TexPreprocessor("test.tex")
-for ((o1, w1), (o2, w2)) in x.n_raw_words_iter(2):
-	if (w2 == "bit") and w1.isdigit():
-		print(w1, w2)
-
-sys.exit(0)
-
 
 if __name__ == "__main__":
 	# Simple test case

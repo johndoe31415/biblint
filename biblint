@@ -10,6 +10,7 @@ from Citations import Citations
 from OptionSet import OptionSet
 from BibUtils import BibUtils
 from LintDB import LintDB
+from TexPreprocessor import TexPreprocessor
 import BibLintChecks
 import TexLintChecks
 
@@ -43,30 +44,36 @@ if args.update_readme:
 	print("Markdown README file successfully updated.")
 	sys.exit(0)
 
-texfiles = [ ]
-bibfiles = [ ]
+texfilenames = [ ]
+bibfilenames = [ ]
 for filename in args.files:
 	if filename.endswith(".tex"):
-		texfiles.append(filename)
+		texfilenames.append(filename)
 	elif filename.endswith(".bib"):
-		bibfiles.append(filename)
+		bibfilenames.append(filename)
 	else:
 		print("Given file '%s' has no known extension, cannot tell if TeX or bib file. Refusing the temptation to guess.")
 		sys.exit(1)
 
 if args.verbose:
-	print("Scanning %d TeX and %d bibliography files." % (len(texfiles), len(bibfiles)))
+	print("Scanning %d TeX and %d bibliography files." % (len(texfilenames), len(bibfilenames)))
 
 apply_checks = db.get_check_classes(oset.parse(args.check))
 
-bibliography = Bibliography(bibfiles)
+bibliography = Bibliography(bibfilenames)
 if args.verbose:
 	print("Parsed %d bibliography entries." % (len(bibliography)))
 
 citations = Citations()
-citations.read_from_files(texfiles)
+citations.read_from_files(texfilenames)
 if args.verbose:
 	print("Parsed %d citations from TeX." % (len(citations)))
+
+texfiles = [ TexPreprocessor(texfilename) for texfilename in texfilenames ]
+if args.verbose:
+	print("Parsed %d TeX files:")
+	for texfile in texfiles:
+		print("    - %s" % (texfile))
 
 if args.output == "-":
 	outfile = sys.stdout
