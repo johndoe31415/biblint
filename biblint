@@ -103,9 +103,10 @@ with outfile:
 				for complaint in checker.check_all():
 					complaints.append(complaint)
 			elif (check_class.linttarget == "tex") and (check_class.linttype == "n-raw-words"):	
-				generator = texfile.n_raw_words_iter(check_class.word_count)
-				for complaint in checker.check_n_raw_words(texfile, generator):
-					complaints.append(complaint)
+				for texfile in texfiles:
+					generator = texfile.n_raw_words_iter(check_class.word_count)
+					for complaint in checker.check_n_raw_words(texfile, generator):
+						complaints.append(complaint)
 			else:
 				raise Exception("Unknown linttype %s for %s checker %s" % (check_class.linttype, check_class.linttarget, check_class.name))
 		complaints.sort()

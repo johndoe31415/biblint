@@ -64,7 +64,7 @@ class _CheckRepeatedWords(TexLintCheck):
 	Finds text locations which repeat a lot (i.e. more than x occurences in y consecutive words)."""
 	linttype = "n-raw-words"
 	word_count = 20
-	threshold = 3
+	threshold = 4
 	_WHITELIST = set((
 		"the",
 		"are",
@@ -73,6 +73,7 @@ class _CheckRepeatedWords(TexLintCheck):
 
 	@staticmethod
 	def _wordstem(word):
+		word = word.lower()
 		if word.endswith("s"):
 			word = word[:-1]
 		if word.endswith("er"):
@@ -83,11 +84,11 @@ class _CheckRepeatedWords(TexLintCheck):
 		holdoff = { }
 		for offset_words in generator:
 			words = [ offset_word[1] for offset_word in offset_words ] 
-			words = [ word for word in words if (len(word) >= self.threshold) and (word not in self._WHITELIST) ]
+			words = [ word for word in words if (len(word) >= 3) and (word not in self._WHITELIST) ]
 			words = [ self._wordstem(word) for word in words ]
 			counter = collections.Counter(words)
 			for (word, occurences) in counter.most_common():
-				if occurences < 3:
+				if occurences < self.threshold:
 					break
 				if holdoff.get(word, 0) == 0:
 					yield LintOffense(lintclass = self.__class__, sources = OffenseSource.from_texfile(texfile, offset_words[0][0]), description = "Word stem \"%s\" occurs %d times within %d words." % (word, occurences, self.word_count))
