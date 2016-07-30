@@ -108,3 +108,6 @@ class LintDB(object):
 	def get_check_classes(self, checknames):
 		return [ self._known_modules[name] for name in sorted(checknames) ]
 
+	def get_check_class_names_of_type(self, classtype):
+		return sorted([ module.name for module in self._known_modules.values() ])
+

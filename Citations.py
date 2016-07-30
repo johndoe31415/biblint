@@ -39,6 +39,10 @@ class Citations(object):
 				citation = citation.strip(" ")
 				self._citations[citation].append(self._Citation(filename = filename, lineno = lineno, colno = colno, citation = citation))
 
+	def read_from_files(self, filenames):
+		for filename in filenames:
+			self.read_from_file(filename)
+
 	def read_from_file(self, filename):
 		with open(filename) as f:
 			for (lineno, line) in enumerate(f, 1):

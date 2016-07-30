@@ -17,40 +17,56 @@ db = LintDB()
 db.scan_module(BibLintChecks)
 db.scan_module(TexLintChecks)
 
-oset = OptionSet(db.known_check_names, default_str = "ALL:-check-local-copies:-check-similar-titles")
+special_sets = {
+	"DEFAULT":	"ALL:-check-local-copies:-check-similar-titles",
+	"TEX":		":".join(db.get_check_class_names_of_type("tex")),
+	"BIB":		":".join(db.get_check_class_names_of_type("bib")),
+}
+oset = OptionSet(db.known_check_names, special_sets = special_sets)
 parser = FriendlyArgumentParser()
 parser.set_additional_help_callback(db.print_help)
-parser.add_argument("-c", "--check", metavar = "checkstr", type = str, default = oset.default_str, help = "Checks to perform. Defaults to %(default)s. Recognized checks are " + (", ".join(db.known_check_names)) + ". Special values are ALL or DEFAULT. A valid lint check string is separated by colons and every item is prefixed with + or -. The plus character can be omitted, the string is case-insensitive. One example would be '+foo-check:+bar-check' to only check 'foo' and 'bar'. Another one would be 'DEFAULT:-dumb-check' to check the ones enabled by default but disable 'dumb'. ")
+parser.add_argument("-c", "--check", metavar = "checkstr", type = str, default = oset.get_string("DEFAULT"), help = "Checks to perform. Defaults to %(default)s. Recognized checks are " + (", ".join(db.known_check_names)) + ". Special values are ALL, DEFAULT, TEX or BIB. A valid lint check string is separated by colons and every item is prefixed with + or -. The plus character can be omitted, the string is case-insensitive. One example would be '+foo-check:+bar-check' to only check 'foo' and 'bar'. Another one would be 'DEFAULT:-dumb-check' to check the ones enabled by default but disable 'dumb'. ")
 parser.add_argument("-i", "--ignore-suppressions", action = "store_true", help = "Do not honor suppressions and always emit warnings.")
 parser.add_argument("-f", "--format", choices = [ "short", "long", "json", "html", "quickfix" ], default = "short", help = "Display the lint messages in the specified format. Choices are %(choices)s, default is %(default)s.")
 parser.add_argument("-o", "--output", metavar = "path", default = "-", help = "Specifies where to output the specific data to. Can be stdout by specifying '-'. Defaults to %(default)s.")
 parser.add_argument("-l", "--localdir", metavar = "path", default = "bibliography/", help = "Points to the directory where the local bibliography is expected. Defaults to %(default)s.")
-parser.add_argument("-a", "--action", choices = [ "lint", "authorscan", "prettyprint" ], default = "lint", help = "Specifies the action that should be done with the given files. Can be one of %(choices)s, default is %(default)s. 'lint' does a regular lint scan, 'authorscan' outputs a JSON file of all authors and 'prettyprint' emits the scanned bibliography in a pretty-printed version.")
-parser.add_argument("-t", "--tex", metavar = "texfile", type = str, action = "append", default = [ ], help = "Also parses a number of TeX files to be able to identify citations which are unused. Supports globbing in order to select multiple files.")
+parser.add_argument("-a", "--action", choices = [ "lint", "authorscan", "printbib", "printtex" ], default = "lint", help = "Specifies the action that should be done with the given files. Can be one of %(choices)s, default is %(default)s. 'lint' does a regular lint scan, 'authorscan' outputs a JSON file of all authors, 'printbib' emits the scanned bibliography in a pretty-printed version and 'printtex' prints the raw text of the TeX file(s) that were given.")
 parser.add_argument("--use-ansi", action = "store_true", default = False, help = "Use ANSI escape sequences to print colored error messages if the output formatter supports it.")
-parser.add_argument("--only-used", action = "store_true", help = "Lint only those bibliography entries that are referenced within the given TeX files.")
+parser.add_argument("--only-cited-bibentries", action = "store_true", help = "Lint only those bibliography entries that are referenced within the given TeX files using cite commands.")
 parser.add_argument("--update-readme", action = "store_true", help = "Updates the README.md file automatically with the data from the available check classes. Usually only needed for development of biblint.")
 parser.add_argument("-v", "--verbose", action = "store_true", help = "Be more verbose when checking")
-parser.add_argument("bibfiles", metavar = "bibfile", type = str, nargs = "+", help = "Bibliography files which should be checked")
+parser.add_argument("files", metavar = "bib/texfile", type = str, nargs = "+", help = "Bibliography (.bib) or TeX (.tex) files which should be checked.")
 args = parser.parse_args(sys.argv[1:])
 
 if args.update_readme:
 	db.update_markdown()
+	print("Markdown README file successfully updated.")
 	sys.exit(0)
+
+texfiles = [ ]
+bibfiles = [ ]
+for filename in args.files:
+	if filename.endswith(".tex"):
+		texfiles.append(filename)
+	elif filename.endswith(".bib"):
+		bibfiles.append(filename)
+	else:
+		print("Given file '%s' has no known extension, cannot tell if TeX or bib file. Refusing the temptation to guess.")
+		sys.exit(1)
+
+if args.verbose:
+	print("Scanning %d TeX and %d bibliography files." % (len(texfiles), len(bibfiles)))
 
 apply_checks = db.get_check_classes(oset.parse(args.check))
 
-bibliography = Bibliography(args.bibfiles)
+bibliography = Bibliography(bibfiles)
 if args.verbose:
 	print("Parsed %d bibliography entries." % (len(bibliography)))
 
-citations = None
-for texfile_glob in args.tex:
-	citations = Citations()
-	for filename in glob.glob(texfile_glob):
-		citations.read_from_file(filename)
-	if args.verbose:
-		print("Parsed %d citations from TeX." % (len(citations)))
+citations = Citations()
+citations.read_from_files(texfiles)
+if args.verbose:
+	print("Parsed %d citations from TeX." % (len(citations)))
 
 if args.output == "-":
 	outfile = sys.stdout

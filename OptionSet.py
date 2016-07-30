@@ -22,21 +22,24 @@
 #
 
 class OptionSet(object):
-	def __init__(self, valid_options, default_str):
+	def __init__(self, valid_options, special_sets = None):
 		self._valid_options = frozenset(option.lower() for option in valid_options)
-		self._default_set = frozenset()
-		self._default_set = self.parse(default_str)
-		self._default_str = default_str
+		self._special_sets = { }
+		if special_sets is not None:
+			self._special_strings = { name.lower(): value for (name, value) in special_sets.items() }
+			self._special_sets = { name.lower(): self.parse(value) for (name, value) in special_sets.items() }
+		else:
+			self._special_strings = { }
+			self._special_sets = { }
 
-	@property
-	def default_str(self):
-		return self._default_str
+	def get_string(self, name):
+		return self._special_strings[name.lower()]
 
 	def _get_set(self, element):
 		if element == "all":
 			return self._valid_options
-		elif element == "default":
-			return self._default_set
+		elif element in self._special_sets:
+			return self._special_sets[element]
 		else:
 			return set([ element ])
 
@@ -62,5 +65,5 @@ class OptionSet(object):
 		return result
 
 if __name__ == "__main__":
-	oset = OptionSet([ "foo", "bar", "moo", "koo", "hubbeldubbel" ], "ALL:-foo")
+	oset = OptionSet([ "foo", "bar", "moo", "koo", "hubbeldubbel" ], { "DEFAULT": "ALL:-foo" })
 	print(oset.parse("ALL:-default"))
