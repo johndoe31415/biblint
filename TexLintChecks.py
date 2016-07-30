@@ -123,3 +123,34 @@ class _CheckAbbreviationCommata(TexLintCheck):
 			if word.startswith("e.g.") or word.startswith("i.e."):
 				if not word.endswith(","):
 					yield LintOffense(lintclass = self.__class__, sources = OffenseSource.from_texfile(texfile, offset + len(word) - 1), description = "Abbreviation \"%s\" should probably end with a comma, but does not." % (word))
+
+
+class _CheckPrepositions(TexLintCheck):
+	name = "preposition-check"
+	description = """
+	Finds misused prepositions for certain words."""
+	linttype = "n-raw-words"
+	word_count = 2
+
+	_PREPOSITIONS = set(['aboard', 'about', 'above', 'across', 'after',
+		'against', 'along', 'amid', 'among', 'anti', 'around', 'as', 'at',
+		'before', 'behind', 'below', 'beneath', 'beside', 'besides', 'between',
+		'beyond', 'but', 'by', 'concerning', 'considering', 'despite', 'down',
+		'during', 'except', 'excepting', 'excluding', 'following', 'for',
+		'from', 'in', 'inside', 'into', 'like', 'minus', 'near', 'of', 'off',
+		'on', 'onto', 'opposite', 'outside', 'over', 'past', 'per', 'plus',
+		'regarding', 'round', 'save', 'since', 'than', 'through', 'to',
+		'toward', 'towards', 'under', 'underneath', 'unlike', 'until', 'up',
+		'upon', 'versus', 'via', 'with', 'within', 'without'])
+	_ACCEPTABLE_PREPOSITIONS = {
+		"equivalent":		("of", ),
+	}
+
+	def check_n_words(self, texfile, generator):
+		for ((offset, word), (prep_offset, preposition)) in generator:
+			if word in self._ACCEPTABLE_PREPOSITIONS:
+				acceptable = self._ACCEPTABLE_PREPOSITIONS[word]
+				if (preposition in self._PREPOSITIONS) and preposition not in acceptable:
+					yield LintOffense(lintclass = self.__class__, sources = OffenseSource.from_texfile(texfile, prep_offset), description = "Expected \"%s\" to stand with any of the prepositions \"%s\", but found \"%s\"." % (word, ", ".join(sorted(acceptable)), preposition))
+
+

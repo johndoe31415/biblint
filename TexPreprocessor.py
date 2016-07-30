@@ -29,7 +29,7 @@ from TextFragmentTracker import TextFragmentTracker
 
 class TexPreprocessor(object):
 	# These are removed completely
-	_REMOVE_COMPLETELY_ENVIRONMENTS = ( "listing", "figure", "table", "equation" )
+	_REMOVE_COMPLETELY_ENVIRONMENTS = ( "listing", "figure", "table", "equation", "align" )
 
 	# Static search/replace
 	_STATIC_REPLACEMENTS = (
@@ -109,10 +109,6 @@ class TexPreprocessor(object):
 			replacement = "" if self._machine_checking else "<Removed %s>" % (name)
 			self._text.replace_regex(regex, replacement)
 
-		# Completely remove some commands including their arguments
-		for name in [ "label", "selectlanguage", "nocite", "todo" ]:
-			self._text.delete_regex(r"\\%s{[^}]*}" % (name))
-
 		# Remove enquoted quotations
 		self._text.replace_regex(r"\\enquote{([^}]*)}", "\"\\1\"")
 
@@ -122,7 +118,7 @@ class TexPreprocessor(object):
 
 		# Same for these, but with braces
 		for name in self._HEADINGS:
-			self._text.replace_regex(r"\\%s{([^}]*)}" % (name), lambda o: "<" + o.group(1) + ">")
+			self._text.replace_regex(r"\\%s\*?{([^}]*)}" % (name), lambda o: "<" + o.group(1) + ">")
 
 		# Replace quotation marks
 		self._text.replace_regex(r"(``|'')", "\"")
@@ -160,13 +156,22 @@ class TexPreprocessor(object):
 		self._text.replace_regex(r"\\ ", " ")
 		self._text.replace_regex(r"\\_", "_")
 		self._text.replace_regex(r"\\le", "<=")
+		
+		# Remove commands with no arguments
+		self._text.delete_regex(r"\\(cleardoublepage|phantomsection)")
 
-		# Remove setlength
-		self._text.delete_regex(r"\\setlength{[^}]*}{[^}]*}")
+		# Remove commands with one argument
+		self._text.delete_regex(r"\\(label|selectlanguage|nocite|todo)({[^}]*}){1}")
+
+		# Remove commands with two arguments
+		self._text.delete_regex(r"\\(newcommand|renewcommand|setlength|markboth)({[^}]*}){2}")
+		
+		# Remove commands with three arguments
+		self._text.delete_regex(r"\\(addcontentsline)({[^}]*}){3}")
 
 		# Remove formulas
 		replacement = "" if self._machine_checking else "<Removed formula>"
-		self._text.replace_regex(re.compile(r"\\\[.*?\\\]", flags = re.MULTILINE), replacement)
+		self._text.replace_regex(re.compile(r"\\\[.*?\\\]", flags = re.DOTALL | re.MULTILINE), replacement)
 		self._text.replace_regex(r"\$[-+*{}(),_^a-zA-Z0-9=\. ]+?\$", replacement)
 
 		# Pull percent sign in
