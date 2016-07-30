@@ -2,7 +2,7 @@
 #
 #	Ansi256 - Simple 256 color terminal markup abstraction.
 #	Copyright (C) 2011-2012 Johannes Bauer
-#	
+#
 #	This file is part of jpycommon.
 #
 #	jpycommon is free software; you can redistribute it and/or modify
@@ -335,7 +335,7 @@ class Ansi256(object):
 			return self.closesthtml(color)
 		elif color.startswith(":"):
 			return self.closestcommon(color[1 : ])
-		
+
 	def _escape(text):
 		return text.replace("\e", "\x1b")
 

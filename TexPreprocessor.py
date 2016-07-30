@@ -65,7 +65,7 @@ class TexPreprocessor(object):
 		"section",
 		"subsection",
 	)
-		
+
 	# Regex to detect a word
 	_WORD_RE = re.compile("[^ \n]+")
 
@@ -103,7 +103,7 @@ class TexPreprocessor(object):
 		self._text.delete_regex(r"[^\\](%.*[^\n])", delete_spans = [ 1 ])
 		self._text.delete_regex(r"\n(\s*%[^\n]*)", delete_spans = [ 1 ])
 
-		# Then remove listings, figures and tables 
+		# Then remove listings, figures and tables
 		for name in self._REMOVE_COMPLETELY_ENVIRONMENTS:
 			regex = re.compile(r"\\begin{%s\*?}.*?\\end{%s\*?}" % (name, name), flags = re.DOTALL | re.MULTILINE)
 			replacement = "" if self._machine_checking else "<Removed %s>" % (name)
@@ -193,7 +193,7 @@ class TexPreprocessor(object):
 			orig_offset = self.text.translate_offset(str_offset)
 			text = occurence.group(0)
 			self._words.append((orig_offset, text))
-	
+
 	def _extract_sentences(self):
 		sentence_offset = None
 		sentence = [ ]
@@ -219,7 +219,7 @@ class TexPreprocessor(object):
 		for (offset, word) in self._words:
 			word = word.rstrip(".;:,])>").lstrip("[(<")
 			self._raw_words.append((offset, word))
-	
+
 	def n_words_iter(self, n):
 		return zip(*(self._words[i:] for i in range(n)))
 

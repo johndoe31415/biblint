@@ -94,9 +94,9 @@ class _CheckUnquotedAbbreviations(BibLintCheck):
 
 	if the abbreviation AES was not enclosed by curly braces.
 	"""
-	
+
 	_ABBRV_RE = re.compile("([A-Z][0-9a-z]*[A-Z]+[A-Za-z0-9]*)")
-	
+
 	def check_entry(self, entry):
 		for field in [ "title" ]:
 			parsed_title = entry.parsefield(field)

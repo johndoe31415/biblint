@@ -30,7 +30,7 @@ class _CheckNumberWordHyphen(TexLintCheck):
 	Finds occurences which are supposed to have a hypen between a number and word (e.g., in '32-bit architecture'). May also yield false positives (e.g., 'the leftmost 4 bits are')."""
 	linttype = "n-raw-words"
 	word_count = 2
-	
+
 	def check_n_words(self, texfile, generator):
 		for ((offset1, word1), (offset2, word2)) in generator:
 			if (word2 == "bit") and word1.isdigit():
@@ -52,7 +52,7 @@ class _CheckSeparatedWords(TexLintCheck):
 		("work", "flow"),
 		("tag", "line"),
 	))
-	
+
 	def check_n_words(self, texfile, generator):
 		for ((offset1, word1), (offset2, word2)) in generator:
 			word = (word1.lower(), word2.lower())
@@ -84,7 +84,7 @@ class _CheckRepeatedWords(TexLintCheck):
 	def check_n_words(self, texfile, generator):
 		holdoff = { }
 		for offset_words in generator:
-			words = [ offset_word[1] for offset_word in offset_words ] 
+			words = [ offset_word[1] for offset_word in offset_words ]
 			words = [ word for word in words if (len(word) >= 3) and (word not in self._WHITELIST) ]
 			words = [ self._wordstem(word) for word in words ]
 			counter = collections.Counter(words)

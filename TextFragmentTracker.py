@@ -123,7 +123,7 @@ class TextFragmentTracker(object):
 		(index, translated) = self.translate_full_offset(pos + length)
 		for i in range(index, len(self._offsetmap)):
 			self._offsetmap[i][0] += length
-		
+
 		if __debug__ and self._debug:
 			# Only during debugging, check list after every modification
 			self._assert_offsetmap_integrity()
