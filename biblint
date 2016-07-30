@@ -52,7 +52,7 @@ for filename in args.files:
 	elif filename.endswith(".bib"):
 		bibfilenames.append(filename)
 	else:
-		print("Given file '%s' has no known extension, cannot tell if TeX or bib file. Refusing the temptation to guess.")
+		print("Given file '%s' has no known extension, cannot tell if TeX or bib file. Refusing the temptation to guess." % (filename))
 		sys.exit(1)
 
 if args.verbose:
@@ -133,8 +133,11 @@ with outfile:
 			raise Exception(NotImplemented)
 	elif args.action == "authorscan":
 		BibUtils(bibliography).author_scan(file = outfile)
-	elif args.action == "prettyprint":
+	elif args.action == "printbib":
 		bibliography.pretty_print(file = outfile)
+	elif args.action == "printtex":
+		for texfile in texfiles:
+			print(texfile.text.text, file = outfile)
 	else:
 		raise Exception(NotImplemented)
 

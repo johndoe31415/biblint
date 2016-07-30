@@ -27,6 +27,8 @@ import sys
 from LineMapper import LineMapper
 
 class _TextFragment(object):
+	_debug = False
+
 	def __init__(self, text):
 		self._text = text
 		self._offsetmap = [ [ 0, 0 ] ]
@@ -48,42 +50,51 @@ class _TextFragment(object):
 		# Assign some helper variables first
 		(span_from, span_to) = span
 		length = span_to - span_from
-#		print("Removing span [ %d; %d ] length %d" % (span_from, span_to, length))
+		if __debug__ and self._debug:
+			print("Removing span [ %d; %d ] length %d" % (span_from, span_to, length))
 
 		# Remove the span in the actual text
 		removed_text = self._text[span_from : span_to]
-#		print("Removed: '%s'" % (removed_text))
+		if __debug__ and self._debug:
+			print("Removed: '%s'" % (removed_text))
 		self._text = self._text[ : span_from] + self._text[span_to : ]
 
 		# Then find out the current translated offset
 		(index_from, translated_from) = self.translate_full_offset(span_from)
 		(index_to, translated_to) = self.translate_full_offset(span_to)
-#		print("Previously: offset %d is idx %d-%d (%s - %s), translated_offset end = %d" % (span_to, index_from, index_to, self._offsetmap[index_from], self._offsetmap[index_to], translated_to))
+		if __debug__ and self._debug:
+			print("Previously: offset %d is idx %d-%d (%s - %s), translated_offset end = %d" % (span_to, index_from, index_to, self._offsetmap[index_from], self._offsetmap[index_to], translated_to))
 
 		# Remove old spans first
-#		print("PRE ", self._offsetmap)
+		if __debug__ and self._debug:
+			print("Remove span PRE ", self._offsetmap)
 		self._offsetmap = self._offsetmap[ : index_from + 1 ] + self._offsetmap[index_to + 1 : ]
-#		print("POST", self._offsetmap)
+		if __debug__ and self._debug:
+			print("Remove span POST", self._offsetmap)
 
 		# Then insert new one
 		insert_index = index_from + 1
 		new_element = [ span_from, translated_to ]
-#		print("New element: %s" % (new_element))
+		if __debug__ and self._debug:
+			print("New element: %s" % (new_element))
 
 		if self._offsetmap[index_from][0] == new_element[0]:
-#			old_element = self._offsetmap[index_from]
-#			print("Updating index of element at %d: %s -> %s" % (insert_index, old_element, new_element))
+			if __debug__ and self._debug:
+				old_element = self._offsetmap[index_from]
+				print("Updating index of element at %d: %s -> %s" % (insert_index, old_element, new_element))
 			self._offsetmap[index_from] = new_element
 		else:
-#			print("Inserting new element at %d: %s" % (insert_index, new_element))
+			if __debug__ and self._debug:
+				print("Inserting new element at %d: %s" % (insert_index, new_element))
 			self._offsetmap.insert(insert_index, new_element)
 
 		for i in range(insert_index + 1, len(self._offsetmap)):
 			self._offsetmap[i][0] -= length
 
-		# Only during debugging, check list after every modification
-#		self._assert_offsetmap_integrity()
-#		print()
+		if __debug__ and self._debug:
+			# Only during debugging, check list after every modification
+			self._assert_offsetmap_integrity()
+			print()
 
 	def replace_span(self, span, replacement):
 		self.delete_span(span)
@@ -286,7 +297,7 @@ class TexPreprocessor(object):
 		self._text.delete_regex(r"\\setlength{[^}]*}{[^}]*}")
 
 		# Remove formulas
-		self._text.replace_regex(r"\\\[.*\\\]", "[Removed formula]")
+		self._text.replace_regex(r"\\\[.*\\\]", "<Removed formula>")
 		self._text.replace_regex(r"\$[-+*{}(),_^a-zA-Z0-9=\. ]+?\$", "x+y")
 
 		# Pull percent sign in

@@ -50,11 +50,12 @@ class _CheckSeparatedWords(TexLintCheck):
 		("hard", "code"),
 		("hard", "coded"),
 		("work", "flow"),
+		("tag", "line"),
 	))
 	
 	def check_n_raw_words(self, texfile, generator):
 		for ((offset1, word1), (offset2, word2)) in generator:
-			word = (word1, word2)
+			word = (word1.lower(), word2.lower())
 			if word in self._CHECKED_WORDS:
 				yield LintOffense(lintclass = self.__class__, sources = OffenseSource.from_texfile(texfile, offset1), description = "\"%s %s\" should possibly be spelled \"%s%s\"." % (word1, word2, word1, word2))
 
