@@ -85,11 +85,11 @@ class TextFragmentTrackerTests(unittest.TestCase):
 		# Remove long text
 		text = TextFragmentTracker("0123456789" * 3)
 		text.delete_regex("012345")
-		assert_integrity(text)
+		self._assert_integrity(text)
 
 	def test_remove_head(self):
 		# Head remove test
-		TextFragmentTracker._debug = True
+#		TextFragmentTracker._debug = True
 		text = TextFragmentTracker("0123456789" * 3)
 
 		text.delete_regex("012345678")
@@ -99,15 +99,13 @@ class TextFragmentTrackerTests(unittest.TestCase):
 		# Multiple remove test
 		text = TextFragmentTracker("0123456789" * 10)
 		text.delete_regex("7")
-		assert_integrity(text)
+		self._assert_integrity(text)
 		text.delete_regex("2.4")
-		assert_integrity(text)
+		self._assert_integrity(text)
 		text.delete_regex("0")
-		assert_integrity(text)
-	#	text.delete_regex("915")
-	#	assert_integrity(text)
-	#	text.delete_regex("15686")
-	#	assert_integrity(text)
+		self._assert_integrity(text)
+		text.delete_regex("915")
+		self._assert_integrity(text)
 
 if __name__ == "__main__":
 	unittest.main()
