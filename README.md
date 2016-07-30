@@ -16,6 +16,12 @@ Cross-references are not supported.
 
 
 
+### License
+biblint is licensed under the GNU General Public License version 3. A copy of
+the license should be included in the package in the LICENSE file.
+
+
+
 ### Author
 biblint was written by Johannes Bauer. The project is hosted on GitHub at
 https://github.com/johndoe31415/biblint. For further information, visit
@@ -102,52 +108,52 @@ run it on the command line wihtout any arguments. Currently, the
 implemented checks are:
 
 4 TeX lint checks available:
-- abbreviation-commata
+- **abbreviation-commata**: 
       Finds occurences of abbreviations that call for a comma
       immediately after the abbreviation. Examples are 'e.g.' and
       'i.e.'.
 
-- number-word-hyphen
+- **number-word-hyphen**: 
       Finds occurences which are supposed to have a hypen between a
       number and word (e.g., in '32-bit architecture'). May also yield
       false positives (e.g., 'the leftmost 4 bits are').
 
-- repeated-words
+- **repeated-words**: 
       Finds text locations which repeat a lot (i.e. more than x
       occurences in y consecutive words).
 
-- separated-words
+- **separated-words**: 
       Finds occurences where two words are separate that should be
       written as one word (e.g., 'bit stream', 'byte code', 'run
       time').
 
 
 17 bibliography lint checks available:
-- check-full-first-names
+- **check-full-first-names**: 
       Checks that author first names are spelled out in full (i.e. not
       abbreviated). An exception to this are RFCs, where first names
       are abbreviated.
 
-- check-identical-titles
+- **check-identical-titles**: 
       Checks for two titles which are exactly identical for different
       bibliography entries (possible duplicate under two different
       citation names).
 
-- check-isbn
+- **check-isbn**: 
       Checks that the ISBN-10 or ISBN-13 checksum is correct. Checks
       that the format is either n-nnn-nnnnn-n (for ISBN-10) or nnn-n-
       nnn-nnnnn-n (for ISBN-13). Also suggests to convert ISBN-10 to
       ISBN-13 and recalculates the proper ISBN-13 checksum for the
       converted value.
 
-- check-local-copies
+- **check-local-copies**: 
       Checks if the referred files are present as local files. It
       checks for files in the localdir command line argument directory
       and checks for both .pdf and .txt files in that directory. It
       will give you a Google search links with arguments that you can
       use to search for a PDF.
 
-- check-missing-doi
+- **check-missing-doi**: 
       Checks for missing DOIs and tries to heuristically find out if
       it's a IEEE, Springer, ACM or Elsevier publication. For these
       publications, it directly shows a clickable search link that
@@ -155,22 +161,22 @@ implemented checks are:
       detects DOIs that are potentially present in other metadata
       fields (e.g. "ee") and advises accordingly.
 
-- check-name-consistency
+- **check-name-consistency**: 
       Checks that author names are consistently written in terms of
       abbreviating their last names. For example, "F. Bar and M. Koo"
       is okay, "Foo Bar and Moo Koo" as well, but the mixing, i.e. "F.
       Bar and Moo Koo" is raised as an error.
 
-- check-present-fields
+- **check-present-fields**: 
       Checks that certain fields are present for certain types of
       citations. For example, checks that an "article" has also a
       "journal" set and so on.
 
-- check-rfc-dois
+- **check-rfc-dois**: 
       Checks for RFCs that the DOIs are in the appropriate format as
       specified by RFC 7669 (DOI 10.17487/rfc7669).
 
-- check-uniform-doi-url
+- **check-uniform-doi-url**: 
       For entries which have a DOI present, checks that the URL points
       to
 
@@ -189,17 +195,17 @@ implemented checks are:
       name of rfc(\d+). This check does not issue any warnings if no
       DOI is present at all.
 
-- duplicate-entries-by-name
+- **duplicate-entries-by-name**: 
       Finds BibTeX entries which have the same cite name. This can
       lead to unexpected results in document and should usually not
       happen.
 
-- entries-with-illegal-chars
+- **entries-with-illegal-chars**: 
       Finds special characters in title or booktitle such as
       typographic quotation marks or typographic dashes which will
       frequently lead to problems during typesetting.
 
-- entries-with-overquoted-title
+- **entries-with-overquoted-title**: 
       Finds overquoted titles. For example, for
 
       ```tex
@@ -209,7 +215,7 @@ implemented checks are:
       it would advise you that there are multiple words in one huge
       curly brace. This might be unintentional.
 
-- entries-with-unquoted-abbreviations
+- **entries-with-unquoted-abbreviations**: 
       Finds underquoted abbreviations in the title. For example, if
       the title was set to
 
@@ -225,7 +231,7 @@ implemented checks are:
 
       if the abbreviation AES was not enclosed by curly braces.
 
-- entries-with-unquoted-names
+- **entries-with-unquoted-names**: 
       Finds unquoted names in the title. For example, a BibTeX entry
       that had
 
@@ -244,7 +250,7 @@ implemented checks are:
       will probably only fit your purpose if you extend the list
       manually by editing the code.
 
-- misformatted-month
+- **misformatted-month**: 
       Shows entries with a misformatted month. Months are expected to
       be in unquoted form and use three-letter lowercase English month
       abbreviations (e.g. month = jan, ..., month = dec). This will
@@ -252,11 +258,11 @@ implemented checks are:
       up wrong in the final document. It will also reject days of the
       week which are encoded in the month field.
 
-- uncited-citations
+- **uncited-citations**: 
       When TeX files are given, this check will determine if there are
       citations in the BibTeX which are never cited from the TeX.
 
-- undefined-citations
+- **undefined-citations**: 
       When TeX files are given, this check will determine if there are
       undefined citations in the TeX which never appear in the BibTeX.
 
@@ -408,13 +414,6 @@ Please not that there's also rate limiting in effect in order to distribute the
 DBLP load. I'll politely ask for you not to disable it. I would hate for them
 to discontinue their incredibly useful machine-readable interface. Don't ruin
 it for everyone, please. :-)
-
-
-
-### License
-biblint is licensed under the GNU General Public License version 3. A copy of
-the license should be included in the package in the LICENSE file.
-
 
 
 

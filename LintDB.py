@@ -51,12 +51,12 @@ class LintDB(object):
 	def check_classes(self):
 		return sorted(list(self._known_modules.values()), key = lambda cls: cls.name)
 
-	def _print_help(self, file, cmd_prefix = " - ", ignore_markdown = True, initial_indent = "      ", subsequent_indent = "      "):
+	def _print_help(self, file, cmd_prefix = " - ", pre_cmd = "", post_cmd = "", ignore_markdown = True, initial_indent = "      ", subsequent_indent = "      "):
 		for (linttarget, linttarget_name) in ( [ "tex", "TeX" ], [ "bib", "bibliography" ] ):
 			classes = self.get_check_classes_by_linttarget(linttarget)
 			print("%d %s lint checks available:" % (len(classes), linttarget_name), file = file)
 			for check_cls in classes:
-				print("%s%s" % (cmd_prefix, check_cls.name), file = file)
+				print("%s%s%s%s" % (cmd_prefix, pre_cmd, check_cls.name, post_cmd), file = file)
 				description = textwrap.dedent(check_cls.description).strip()
 				for paragraph in description.split("\n"):
 					if paragraph != "":
@@ -89,7 +89,7 @@ class LintDB(object):
 			print(file = readme)
 
 			# Print the new help to the new README.md file
-			self._print_help(readme, ignore_markdown = False, cmd_prefix = "- ", initial_indent = "      ", subsequent_indent = "      ")
+			self._print_help(readme, ignore_markdown = False, cmd_prefix = "- ", pre_cmd = "**", post_cmd = "**: ", initial_indent = "      ", subsequent_indent = "      ")
 			print(file = readme)
 			print(file = readme)
 
