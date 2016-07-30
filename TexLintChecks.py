@@ -88,16 +88,25 @@ class _CheckRepeatedWords(TexLintCheck):
 			words = [ word for word in words if (len(word) >= 3) and (word not in self._WHITELIST) ]
 			words = [ self._wordstem(word) for word in words ]
 			counter = collections.Counter(words)
-			for (word, occurences) in counter.most_common():
+			for (wordstem, occurences) in counter.most_common():
 				if occurences < self.threshold:
 					break
-				if holdoff.get(word, 0) == 0:
-					yield LintOffense(lintclass = self.__class__, sources = OffenseSource.from_texfile(texfile, offset_words[0][0]), description = "Word stem \"%s\" occurs %d times within %d words." % (word, occurences, self.word_count))
+				if holdoff.get(wordstem, 0) == 0:
+					offset = None
+					fullwords = [ ]
+					for (wordoffset, fullword) in offset_words:
+						if fullword.lower().startswith(wordstem):
+							if offset is None:
+								offset = wordoffset
+							fullwords.append(fullword)
+					if offset is None:
+						raise Exception("Word stem '%s' not found in full word list %s -- programming error?" % (wordstem, str(offset_words)))
+					yield LintOffense(lintclass = self.__class__, sources = OffenseSource.from_texfile(texfile, offset), description = "Word stem \"%s\" occurs %d times within %d words (%s)." % (wordstem, occurences, self.word_count, ", ".join(fullwords)))
 
 					# Hold off on warning about this word again within the next
 					# x words (identical error would otherwise throw the same
 					# error message lots of times due to word sliding window)
-					holdoff[word] = self.word_count
-				elif word in holdoff:
+					holdoff[wordstem] = self.word_count
+				elif wordstem in holdoff:
 					# Decrease holdoff for that word so that eventually warnings are emitted again
-					holdoff[word] -= 1
+					holdoff[wordstem] -= 1
