@@ -24,7 +24,7 @@
 import os
 import textwrap
 import io
-from BaseLintChecks import BibLintCheck
+from BaseLintChecks import BibLintCheck, TexLintCheck
 
 class LintDB(object):
 	def __init__(self):
@@ -35,7 +35,7 @@ class LintDB(object):
 			if not isinstance(lint_class, type):
 				# Isn't a class
 				continue
-			if any(superclass == BibLintCheck for superclass in lint_class.__mro__[1:]):
+			if any(superclass in [ BibLintCheck, TexLintCheck ] for superclass in lint_class.__mro__[1:]):
 				name = lint_class.name
 				if name is None:
 					raise Exception("Lint class %s has no name associated, refusing to register it." % (lint_class))
@@ -52,23 +52,26 @@ class LintDB(object):
 		return sorted(list(self._known_modules.values()), key = lambda cls: cls.name)
 
 	def _print_help(self, file, cmd_prefix = " - ", ignore_markdown = True, initial_indent = "      ", subsequent_indent = "      "):
-		for check_cls in self.check_classes:
-			print("%s%s" % (cmd_prefix, check_cls.name), file = file)
-			description = textwrap.dedent(check_cls.description).strip()
-			for paragraph in description.split("\n"):
-				if paragraph != "":
-					for line in textwrap.wrap(paragraph, initial_indent = initial_indent, subsequent_indent = subsequent_indent):
-						is_markdown = ("```" in line)
-						if ignore_markdown and is_markdown:
-							continue
-						print(line, file = file)
-				else:
-					print(file = file)
+		for (linttarget, linttarget_name) in ( [ "tex", "TeX" ], [ "bib", "bibliography" ] ):
+			classes = self.get_check_classes_by_linttarget(linttarget)
+			print("%d %s lint checks available:" % (len(classes), linttarget_name), file = file)
+			for check_cls in classes:
+				print("%s%s" % (cmd_prefix, check_cls.name), file = file)
+				description = textwrap.dedent(check_cls.description).strip()
+				for paragraph in description.split("\n"):
+					if paragraph != "":
+						for line in textwrap.wrap(paragraph, initial_indent = initial_indent, subsequent_indent = subsequent_indent):
+							is_markdown = ("```" in line)
+							if ignore_markdown and is_markdown:
+								continue
+							print(line, file = file)
+					else:
+						print(file = file)
+				print(file = file)
 			print(file = file)
 
 	def print_help(self, file):
 		print(file = file)
-		print("detailed list of checks:", file = file)
 		self._print_help(file)
 
 	def update_markdown(self):
@@ -108,6 +111,6 @@ class LintDB(object):
 	def get_check_classes(self, checknames):
 		return [ self._known_modules[name] for name in sorted(checknames) ]
 
-	def get_check_class_names_of_type(self, classtype):
-		return sorted([ module.name for module in self._known_modules.values() ])
+	def get_check_classes_by_linttarget(self, linttarget):
+		return sorted([ module for module in self._known_modules.values() if (module.linttarget == linttarget) ], key = lambda cls: cls.name)
 

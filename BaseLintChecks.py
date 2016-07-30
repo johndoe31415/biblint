@@ -67,6 +67,11 @@ class OffenseSource(object):
 	def from_bibentry(cls, entry, fieldname = None):
 		return cls.from_bibentries([ entry ], fieldname = fieldname)
 
+	@classmethod
+	def from_texfile(cls, texfile, offset):
+		(lineno, colno) = texfile.get_line_col(offset)
+		return [ cls(filename = texfile.filename, lineno = lineno, colno = colno, srctype = "tex") ]
+
 	def to_dict(self):
 		data = {
 			"filename":		self.filename,
@@ -208,16 +213,13 @@ class BibLintCheck(object):
 	name = None
 	description = None
 	linttype = "per_entry"
+	linttarget = "bib"
 
 	def __init__(self, arguments, bibliography, citations):
 		self._arguments = arguments
 		self._bibliography = bibliography
 		self._citations = citations
 		assert(self.linttype in [ "per_entry", "once" ])
-
-	@property
-	def linttarget(self):
-		return "bib"
 
 	@property
 	def args(self):
@@ -250,16 +252,13 @@ class TexLintCheck(object):
 	name = None
 	description = None
 	linttype = None
+	linttarget = "tex"
 
 	def __init__(self, arguments, bibliography, citations):
 		self._arguments = arguments
 		self._bibliography = bibliography
 		self._citations = citations
-		assert(self._linttype in [ "per-word", "per-sentence", "per-texfile" ])
-
-	@property
-	def linttarget(self):
-		return "tex"
+		assert(self.linttype in [ "n-raw-words" ])
 
 	@property
 	def args(self):

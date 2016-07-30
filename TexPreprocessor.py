@@ -154,6 +154,16 @@ class _TextFragment(object):
 	def __str__(self):
 		return "\"%s\"" % (self.text)
 
+class LineColMapper(object):
+	def __init__(self, text):
+		# TODO IMPLEMENT ME
+		pass
+
+	def resolve(self, offset):
+		# TODO IMPLEMENT ME
+		(lineno, colno) = (1, offset)
+		return (lineno, colno)
+
 class TexPreprocessor(object):
 	# These are removed completely
 	_REMOVE_COMPLETELY_ENVIRONMENTS = ( "listing", "figure", "table", "equation" )
@@ -203,6 +213,7 @@ class TexPreprocessor(object):
 		self._texfilename = texfilename
 		with open(texfilename) as f:
 			self._text = f.read()
+		self._line_col_mapper = LineColMapper(self._text)
 		self._text = _TextFragment(self._text)
 		self._words = [ ]
 		self._sentences = [ ]
@@ -211,6 +222,13 @@ class TexPreprocessor(object):
 		self._extract_words()
 		self._extract_sentences()
 		self._extract_raw_words()
+
+	def get_line_col(self, offset):
+		return self._line_col_mapper.resolve(offset)
+
+	@property
+	def filename(self):
+		return self._texfilename
 
 	@property
 	def text(self):

@@ -20,8 +20,8 @@ db.scan_module(TexLintChecks)
 
 special_sets = {
 	"DEFAULT":	"ALL:-check-local-copies:-check-similar-titles",
-	"TEX":		":".join(db.get_check_class_names_of_type("tex")),
-	"BIB":		":".join(db.get_check_class_names_of_type("bib")),
+	"TEX":		":".join(cls.name for cls in db.get_check_classes_by_linttarget("tex")),
+	"BIB":		":".join(cls.name for cls in db.get_check_classes_by_linttarget("bib")),
 }
 oset = OptionSet(db.known_check_names, special_sets = special_sets)
 parser = FriendlyArgumentParser()
@@ -71,7 +71,7 @@ if args.verbose:
 
 texfiles = [ TexPreprocessor(texfilename) for texfilename in texfilenames ]
 if args.verbose:
-	print("Parsed %d TeX files:")
+	print("Parsed %d TeX files:" % (len(texfiles)))
 	for texfile in texfiles:
 		print("    - %s" % (texfile))
 
@@ -85,10 +85,10 @@ with outfile:
 		complaints = [ ]
 		for check_class in apply_checks:
 			if args.verbose:
-				print("Now checking %s" % (check_class.name))
+				print("Now checking %s: %s" % (check_class.linttarget, check_class.name))
 
 			checker = check_class(args, bibliography, citations)
-			if check_class.linttype == "per_entry":
+			if (check_class.linttarget == "bib") and (check_class.linttype == "per_entry"):
 				for entry in bibliography:
 					if (not args.ignore_suppressions) and entry.suppressed(check_class.name):
 						# Ignore this entry because of active suppresion
@@ -99,11 +99,15 @@ with outfile:
 
 					for complaint in checker.check_entry(entry):
 						complaints.append(complaint)
-			elif check_class.linttype == "once":
+			elif (check_class.linttarget == "bib") and (check_class.linttype == "once"):
 				for complaint in checker.check_all():
 					complaints.append(complaint)
+			elif (check_class.linttarget == "tex") and (check_class.linttype == "n-raw-words"):	
+				generator = texfile.n_raw_words_iter(check_class.word_count)
+				for complaint in checker.check_n_raw_words(texfile, generator):
+					complaints.append(complaint)
 			else:
-				raise Exception("Unknown linttype %s for checker %s" % (check_class.linttype, check_class.name))
+				raise Exception("Unknown linttype %s for %s checker %s" % (check_class.linttype, check_class.linttarget, check_class.name))
 		complaints.sort()
 
 		if args.verbose:
