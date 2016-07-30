@@ -210,6 +210,25 @@ class _CheckUniformDOIUrl(BibLintCheck):
 				yield LintOffense(lintclass = self.__class__, sources = OffenseSource.from_bibentry(entry), description = "DOI present, but no URL present at all.", expect_field = ("url", expect_url))
 
 
+class _CheckUniformURNUrl(BibLintCheck):
+	name = "check-uniform-urn-url"
+	description = """
+	For entries which have a URN present, checks that the URL points to
+
+	```
+	https://nbn-resolving.org/${urn}
+	```
+	"""
+	def check_entry(self, entry):
+		if entry.haskey("urn"):
+			expect_url = "https://nbn-resolving.org/" + entry.rawtext("urn")
+			if entry.haskey("url"):
+				current_url = entry.rawtext("url")
+				if current_url != expect_url:
+					yield LintOffense(lintclass = self.__class__, sources = OffenseSource.from_bibentry(entry, fieldname = "url"), description = "URN present, but URL does not point to it.", expect_field = ("url", expect_url))
+			else:
+				yield LintOffense(lintclass = self.__class__, sources = OffenseSource.from_bibentry(entry), description = "URN present, but no URL present at all.", expect_field = ("url", expect_url))
+
 class _CheckMissingDOIUrl(BibLintCheck):
 	name = "check-missing-doi"
 	description = """

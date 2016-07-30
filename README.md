@@ -128,7 +128,7 @@ implemented checks are:
       time').
 
 
-17 bibliography lint checks available:
+18 bibliography lint checks available:
 - **check-full-first-names**: 
       Checks that author first names are spelled out in full (i.e. not
       abbreviated). An exception to this are RFCs, where first names
@@ -194,6 +194,14 @@ implemented checks are:
       to be set as the URL. RFCs are detected by having a citation
       name of rfc(\d+). This check does not issue any warnings if no
       DOI is present at all.
+
+- **check-uniform-urn-url**: 
+      For entries which have a URN present, checks that the URL points
+      to
+
+      ```
+      https://nbn-resolving.org/${urn}
+      ```
 
 - **duplicate-entries-by-name**: 
       Finds BibTeX entries which have the same cite name. This can
