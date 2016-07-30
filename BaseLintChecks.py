@@ -258,7 +258,7 @@ class TexLintCheck(object):
 		self._arguments = arguments
 		self._bibliography = bibliography
 		self._citations = citations
-		assert(self.linttype in [ "n-raw-words" ])
+		assert(self.linttype in [ "n-words", "n-raw-words" ])
 
 	@property
 	def args(self):
@@ -272,9 +272,9 @@ class TexLintCheck(object):
 	def citations(self):
 		return self._citations
 
-	def check_texfile(self, texdata):
-		"""This is the hook that is called for each TeX file that was
-		passed."""
+	def check_n_words(self, texfile, generator):
+		"""This is the hook that is called for each TeX file that was passed
+		together with a generator which generates n words at a time."""
 		raise Exception(NotImplemented)
 
 

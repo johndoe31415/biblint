@@ -101,6 +101,7 @@ class TexPreprocessor(object):
 	def _remove_tex_code(self):
 		# Remove comments
 		self._text.delete_regex(r"[^\\](%.*[^\n])", delete_spans = [ 1 ])
+		self._text.delete_regex(r"\n(\s*%[^\n]*)", delete_spans = [ 1 ])
 
 		# Then remove listings, figures and tables 
 		for name in self._REMOVE_COMPLETELY_ENVIRONMENTS:
@@ -158,13 +159,14 @@ class TexPreprocessor(object):
 		self._text.replace_regex(r"\\%", "%")
 		self._text.replace_regex(r"\\ ", " ")
 		self._text.replace_regex(r"\\_", "_")
+		self._text.replace_regex(r"\\le", "<=")
 
 		# Remove setlength
 		self._text.delete_regex(r"\\setlength{[^}]*}{[^}]*}")
 
 		# Remove formulas
 		replacement = "" if self._machine_checking else "<Removed formula>"
-		self._text.replace_regex(r"\\\[.*\\\]", replacement)
+		self._text.replace_regex(re.compile(r"\\\[.*?\\\]", flags = re.MULTILINE), replacement)
 		self._text.replace_regex(r"\$[-+*{}(),_^a-zA-Z0-9=\. ]+?\$", replacement)
 
 		# Pull percent sign in
@@ -217,6 +219,9 @@ class TexPreprocessor(object):
 		for (offset, word) in self._words:
 			word = word.rstrip(".;:,])>").lstrip("[(<")
 			self._raw_words.append((offset, word))
+	
+	def n_words_iter(self, n):
+		return zip(*(self._words[i:] for i in range(n)))
 
 	def n_raw_words_iter(self, n):
 		return zip(*(self._raw_words[i:] for i in range(n)))

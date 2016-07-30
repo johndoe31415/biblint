@@ -1,10 +1,14 @@
 # biblint
-biblint is a small Python utility to plausibilize and check BibTeX files for
-integrity. It does not contain a true BibTeX parser, but relies on some crude
-assumptions regarding the layout of the BibTeX file:
+biblint is a small Python utility to plausibilize and check LaTeX and BibTeX
+bibliography files for integrity. Since linting of TeX files was functionality
+that was added later on, the name is a tiny bit misleading. But it would be
+even more confusing to rename it, since there's already packages called
+"textlint", which would sound very similar to "texlint". Hence, biblint. It
+does not contain a true BibTeX parser, but relies on some crude assumptions
+regarding the layout of the BibTeX file:
 
 - Beginning of entries start with @foo{bar, in a single line
-- Any line that looks like "identifier = .*" is treated as a new key within an
+- Any line that looks like "identifier = .\*" is treated as a new key within an
   entry
 - End of entry must have } at beginning of the line
 
@@ -14,8 +18,8 @@ Cross-references are not supported.
 
 ### Author
 biblint was written by Johannes Bauer. The project is hosted on GitHub at
-https://github.com/johndoe31415/biblint. For further information about the
-author, visit http://johannes-bauer.com.
+https://github.com/johndoe31415/biblint. For further information, visit
+http://johannes-bauer.com.
 
 
 
@@ -148,7 +152,7 @@ implemented checks are:
       For entries which have a DOI present, checks that the URL points
       to
 
-      ```
+      ```tex
       https://dx.doi.org/${doi}
       ```
 
@@ -324,13 +328,13 @@ vertically. You can also easily integrate biblint into Makefiles. For example,
 you could use these .PHONY targets biblint and fixlint as an inspiration:
 
 ```makefile
-.PHONY: biblint fixline
+.PHONY: biblint fixlint
 
 biblint:
-	TODO
+	biblint --only-cited-bibentries -o biblint.err -f quickfix -c 'DEFAULT:-uncited-citations' *.bib *.tex
 
 fixlint:
-	TODO
+	vi -c ":set cmdheight=2" -c ":cf biblint.err"
 ```
 
 ### Other uses of biblint
@@ -351,7 +355,7 @@ the other side throughout all types of citations (e.g. if you quote one time as
 B. Preneel and the other time as Bart Preneel). For this, simply run the
 authors.json through the given script:
 
-```
+```bash
 $ ./lookup_authors_dblp authors.json
 Richard L Anderson
  -> Richard L Anderson

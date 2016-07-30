@@ -113,9 +113,13 @@ class TextFragmentTracker(object):
 	def insert_at(self, pos, text):
 		if __debug__ and self._debug:
 			print("Inserting at %d: '%s'" % (pos, text))
+		length = len(text)
+		if length == 0:
+			return
+
+		# Modify the text internally
 		self._text = self._text[ : pos] + text + self._text[pos : ]
 
-		length = len(text)
 		(index, translated) = self.translate_full_offset(pos + length)
 		for i in range(index, len(self._offsetmap)):
 			self._offsetmap[i][0] += length

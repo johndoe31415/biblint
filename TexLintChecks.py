@@ -31,7 +31,7 @@ class _CheckNumberWordHyphen(TexLintCheck):
 	linttype = "n-raw-words"
 	word_count = 2
 	
-	def check_n_raw_words(self, texfile, generator):
+	def check_n_words(self, texfile, generator):
 		for ((offset1, word1), (offset2, word2)) in generator:
 			if (word2 == "bit") and word1.isdigit():
 				yield LintOffense(lintclass = self.__class__, sources = OffenseSource.from_texfile(texfile, offset2), description = "Number and word \"%s %s\" is possibly missing a hyphen in between the words." % (word1, word2))
@@ -53,7 +53,7 @@ class _CheckSeparatedWords(TexLintCheck):
 		("tag", "line"),
 	))
 	
-	def check_n_raw_words(self, texfile, generator):
+	def check_n_words(self, texfile, generator):
 		for ((offset1, word1), (offset2, word2)) in generator:
 			word = (word1.lower(), word2.lower())
 			if word in self._CHECKED_WORDS:
@@ -81,7 +81,7 @@ class _CheckRepeatedWords(TexLintCheck):
 			word = word[:-2]
 		return word
 
-	def check_n_raw_words(self, texfile, generator):
+	def check_n_words(self, texfile, generator):
 		holdoff = { }
 		for offset_words in generator:
 			words = [ offset_word[1] for offset_word in offset_words ] 
@@ -110,3 +110,16 @@ class _CheckRepeatedWords(TexLintCheck):
 				elif wordstem in holdoff:
 					# Decrease holdoff for that word so that eventually warnings are emitted again
 					holdoff[wordstem] -= 1
+
+class _CheckAbbreviationCommata(TexLintCheck):
+	name = "abbreviation-commata"
+	description = """
+	Finds occurences of abbreviations that call for a comma immediately after the abbreviation. Examples are 'e.g.' and 'i.e.'."""
+	linttype = "n-words"
+	word_count = 1
+
+	def check_n_words(self, texfile, generator):
+		for ((offset, word), ) in generator:
+			if word.startswith("e.g.") or word.startswith("i.e."):
+				if not word.endswith(","):
+					yield LintOffense(lintclass = self.__class__, sources = OffenseSource.from_texfile(texfile, offset + len(word) - 1), description = "Abbreviation \"%s\" should probably end with a comma, but does not." % (word))
