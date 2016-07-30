@@ -92,7 +92,7 @@ citations.read_from_files(texfilenames)
 if args.verbose:
 	print("Parsed %d citations from TeX." % (len(citations)))
 
-texfiles = [ TexPreprocessor(texfilename) for texfilename in texfilenames ]
+texfiles = [ TexPreprocessor(texfilename, machine_checking = (args.action == "lint")) for texfilename in texfilenames ]
 if args.verbose:
 	print("Parsed %d TeX files:" % (len(texfiles)))
 	for texfile in texfiles:

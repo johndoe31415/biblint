@@ -72,8 +72,9 @@ class TexPreprocessor(object):
 	# Words that do not conclude a sentence
 	_NO_END_OF_SENTENCE = re.compile(r"\(?(Sect|Tab|List|Fig|i\.e|e\.g)[\.:;]")
 
-	def __init__(self, texfilename):
+	def __init__(self, texfilename, machine_checking = True):
 		self._texfilename = texfilename
+		self._machine_checking = machine_checking
 		with open(texfilename) as f:
 			self._text = f.read()
 		self._line_col_mapper = LineMapper(self._text)
@@ -104,7 +105,8 @@ class TexPreprocessor(object):
 		# Then remove listings, figures and tables 
 		for name in self._REMOVE_COMPLETELY_ENVIRONMENTS:
 			regex = re.compile(r"\\begin{%s\*?}.*?\\end{%s\*?}" % (name, name), flags = re.DOTALL | re.MULTILINE)
-			self._text.replace_regex(regex, "<Removed %s>" % (name))
+			replacement = "" if self._machine_checking else "<Removed %s>" % (name)
+			self._text.replace_regex(regex, replacement)
 
 		# Completely remove some commands including their arguments
 		for name in [ "label", "selectlanguage", "nocite", "todo" ]:
@@ -125,7 +127,8 @@ class TexPreprocessor(object):
 		self._text.replace_regex(r"(``|'')", "\"")
 
 		# Replace citet quotations
-		self._text.replace_regex(r"\\[cC]itet{[^}]*}", "John Doe and Jane Doe")
+		replacement = "" if self._machine_checking else "John Doe and Jane Low"
+		self._text.replace_regex(r"\\[cC]itet{[^}]*}", replacement)
 
 		# Replace citep quotations at end of sentence
 		# TODO?
@@ -133,10 +136,12 @@ class TexPreprocessor(object):
 #		tex = regex.sub(".", tex)
 
 		# Replace citep quotations
-		self._text.replace_regex(r"\\citep{[^}]*}", "[Jane Doe, 2016]")
+		replacement = "" if self._machine_checking else "[Jane Doe, 2016]"
+		self._text.replace_regex(r"\\citep{[^}]*}", replacement)
 
 		# Replace references
-		self._text.replace_regex(r"\\ref{[^}]*}", "1.2.3")
+		replacement = "" if self._machine_checking else "1.2.3"
+		self._text.replace_regex(r"\\ref{[^}]*}", replacement)
 
 		# Replace non breaking spaces
 		self._text.replace_regex(r"~", " ")
@@ -158,8 +163,9 @@ class TexPreprocessor(object):
 		self._text.delete_regex(r"\\setlength{[^}]*}{[^}]*}")
 
 		# Remove formulas
-		self._text.replace_regex(r"\\\[.*\\\]", "<Removed formula>")
-		self._text.replace_regex(r"\$[-+*{}(),_^a-zA-Z0-9=\. ]+?\$", "x+y")
+		replacement = "" if self._machine_checking else "<Removed formula>"
+		self._text.replace_regex(r"\\\[.*\\\]", replacement)
+		self._text.replace_regex(r"\$[-+*{}(),_^a-zA-Z0-9=\. ]+?\$", replacement)
 
 		# Pull percent sign in
 		self._text.replace_regex(r"([0-9]) %", lambda o: o.group(1) + "%")
@@ -172,11 +178,12 @@ class TexPreprocessor(object):
 		self._text.replace_regex(r"\\newpage", "")
 		self._text.replace_regex(r"\\@", "")
 
-		# Remove empty lines
-		self._text.replace_regex(r"^\s+$", "")
+		if not self._machine_checking:
+			# Remove empty lines
+			self._text.replace_regex(r"^\s+$", "")
 
-		# Remove consecutive empty lines
-		self._text.replace_regex(re.compile(r"\n{2,}", flags = re.MULTILINE), "\n\n")
+			# Remove consecutive empty lines
+			self._text.replace_regex(re.compile(r"\n{2,}", flags = re.MULTILINE), "\n\n")
 
 	def _extract_words(self):
 		for occurence in self._WORD_RE.finditer(self.text.text):
