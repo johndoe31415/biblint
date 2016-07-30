@@ -101,6 +101,28 @@ To get a complete list of checks that biblint is able to execute, just
 run it on the command line wihtout any arguments. Currently, the
 implemented checks are:
 
+4 TeX lint checks available:
+- abbreviation-commata
+      Finds occurences of abbreviations that call for a comma
+      immediately after the abbreviation. Examples are 'e.g.' and
+      'i.e.'.
+
+- number-word-hyphen
+      Finds occurences which are supposed to have a hypen between a
+      number and word (e.g., in '32-bit architecture'). May also yield
+      false positives (e.g., 'the leftmost 4 bits are').
+
+- repeated-words
+      Finds text locations which repeat a lot (i.e. more than x
+      occurences in y consecutive words).
+
+- separated-words
+      Finds occurences where two words are separate that should be
+      written as one word (e.g., 'bit stream', 'byte code', 'run
+      time').
+
+
+17 bibliography lint checks available:
 - check-full-first-names
       Checks that author first names are spelled out in full (i.e. not
       abbreviated). An exception to this are RFCs, where first names
@@ -152,7 +174,7 @@ implemented checks are:
       For entries which have a DOI present, checks that the URL points
       to
 
-      ```tex
+      ```
       https://dx.doi.org/${doi}
       ```
 
@@ -237,6 +259,7 @@ implemented checks are:
 - undefined-citations
       When TeX files are given, this check will determine if there are
       undefined citations in the TeX which never appear in the BibTeX.
+
 
 
 
