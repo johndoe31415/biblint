@@ -89,7 +89,6 @@ class TextFragmentTrackerTests(unittest.TestCase):
 
 	def test_remove_head(self):
 		# Head remove test
-#		TextFragmentTracker._debug = True
 		text = TextFragmentTracker("0123456789" * 3)
 
 		text.delete_regex("012345678")
@@ -106,6 +105,13 @@ class TextFragmentTrackerTests(unittest.TestCase):
 		self._assert_integrity(text)
 		text.delete_regex("915")
 		self._assert_integrity(text)
+
+	def test_simple_replacement(self):
+		text = TextFragmentTracker("foobarMUHKUH12345")
+		self.assertEqual(list(text), [(0, 'f'), (1, 'o'), (2, 'o'), (3, 'b'), (4, 'a'), (5, 'r'), (6, 'M'), (7, 'U'), (8, 'H'), (9, 'K'), (10, 'U'), (11, 'H'), (12, '1'), (13, '2'), (14, '3'), (15, '4'), (16, '5')])
+		text._debug = True
+		text.replace_regex("MUHKUH", "qwe")
+		self.assertEqual(list(text), [(0, 'f'), (1, 'o'), (2, 'o'), (3, 'b'), (4, 'a'), (5, 'r'), (6, 'q'), (7, 'w'), (8, 'e'), (12, '1'), (13, '2'), (14, '3'), (15, '4'), (16, '5')])
 
 if __name__ == "__main__":
 	unittest.main()

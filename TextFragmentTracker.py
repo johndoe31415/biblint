@@ -110,12 +110,26 @@ class TextFragmentTracker(object):
 			self._assert_offsetmap_integrity()
 			print()
 
+	def insert_at(self, pos, text):
+		if __debug__ and self._debug:
+			print("Inserting at %d: '%s'" % (pos, text))
+		self._text = self._text[ : pos] + text + self._text[pos : ]
+
+		length = len(text)
+		(index, translated) = self.translate_full_offset(pos + length)
+		for i in range(index, len(self._offsetmap)):
+			self._offsetmap[i][0] += length
+		
+		if __debug__ and self._debug:
+			# Only during debugging, check list after every modification
+			self._assert_offsetmap_integrity()
+			print()
+
 	def replace_span(self, span, replacement):
 		"""Deletes a span from the text and replaces it by the given
 		replacement string."""
 		self.delete_span(span)
-		(span_from, span_to) = span
-		self._text = self._text[ : span_from] + replacement + self._text[span_from : ]
+		self.insert_at(span[0], replacement)
 
 	@staticmethod
 	def _mkregex(regex):
