@@ -89,7 +89,7 @@ class LintDB(object):
 			print(file = readme)
 
 			# Print the new help to the new README.md file
-			self._print_help(readme, ignore_markdown = False, cmd_prefix = "- ", pre_cmd = "**", post_cmd = "**: ", initial_indent = "      ", subsequent_indent = "      ")
+			self._print_help(readme, ignore_markdown = False, cmd_prefix = "- ", pre_cmd = "**", post_cmd = "**:", initial_indent = "      ", subsequent_indent = "      ")
 			print(file = readme)
 			print(file = readme)
 
