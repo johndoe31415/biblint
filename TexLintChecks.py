@@ -166,6 +166,7 @@ class _CheckWordiness3(TexLintCheck):
 		("are", "able", "to"):		"can",
 		("is", "able", "to"):		"can",
 		("in", "order", "to"):		"to",
+		("in", "terms", "of"):		"regarding",
 	}
 
 	def check_n_words(self, texfile, generator):
