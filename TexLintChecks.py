@@ -42,22 +42,24 @@ class _CheckSeparatedWords(TexLintCheck):
 	Finds occurences where two words are separate that should be written as one word (e.g., 'bit stream', 'byte code', 'run time')."""
 	linttype = "n-raw-words"
 	word_count = 2
-	_CHECKED_WORDS = set((
-		("bit", "stream"),
-		("byte", "code"),
-		("run", "time"),
-		("key", "less"),
-		("hard", "code"),
-		("hard", "coded"),
-		("work", "flow"),
-		("tag", "line"),
-	))
+	_CHECKED_WORDS = {
+		("bit", "stream"): "bitstream",
+		("byte", "code"): "bytecode",
+		("run", "time"): "run time",
+		("key", "less"): "keyless",
+		("hard", "code"): "hardcode",
+		("hard", "coded"): "hardcoded",
+		("work", "flow"): "workflow",
+		("tag", "line"): "tagline",
+		("wire", "bound"): "wire-bound"
+	}
 
 	def check_n_words(self, texfile, generator):
 		for ((offset1, word1), (offset2, word2)) in generator:
 			word = (word1.lower(), word2.lower())
 			if word in self._CHECKED_WORDS:
-				yield LintOffense(lintclass = self.__class__, sources = OffenseSource.from_texfile(texfile, offset1), description = "\"%s %s\" should possibly be spelled \"%s%s\"." % (word1, word2, word1, word2))
+				replacement = self._CHECKED_WORDS[word]
+				yield LintOffense(lintclass = self.__class__, sources = OffenseSource.from_texfile(texfile, offset1), description = "\"%s %s\" should possibly be spelled \"%s\"." % (word1, word2, replacement))
 
 class _CheckRepeatedWords(TexLintCheck):
 	name = "repeated-words"
