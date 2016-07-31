@@ -144,6 +144,7 @@ class _CheckPrepositions(TexLintCheck):
 		'upon', 'versus', 'via', 'with', 'within', 'without'])
 	_ACCEPTABLE_PREPOSITIONS = {
 		"equivalent":		("of", ),
+		"interest":			("in", "of", "to"),
 	}
 
 	def check_n_words(self, texfile, generator):
@@ -154,3 +155,22 @@ class _CheckPrepositions(TexLintCheck):
 					yield LintOffense(lintclass = self.__class__, sources = OffenseSource.from_texfile(texfile, prep_offset), description = "Expected \"%s\" to stand with any of the prepositions \"%s\", but found \"%s\"." % (word, ", ".join(sorted(acceptable)), preposition))
 
 
+class _CheckWordiness3(TexLintCheck):
+	name = "wordiness"
+	description = """
+	Checks wordiness of three-word phrases and offers alternatives. For example, "is able to" can be replaced by "can"."""
+	linttype = "n-raw-words"
+	word_count = 3
+
+	_WORDINESS = {
+		("are", "able", "to"):		"can",
+		("is", "able", "to"):		"can",
+		("in", "order", "to"):		"to",
+	}
+
+	def check_n_words(self, texfile, generator):
+		for offset_words in generator:
+			words = tuple(word for (offset, word) in offset_words)
+			if words in self._WORDINESS:
+				replacement = self._WORDINESS[words]
+				yield LintOffense(lintclass = self.__class__, sources = OffenseSource.from_texfile(texfile, offset_words[0][0]), description = "Wordiness: \"%s\" could be replaced by \"%s\"." % (" ".join(words), replacement))

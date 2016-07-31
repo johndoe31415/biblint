@@ -107,7 +107,7 @@ To get a complete list of checks that biblint is able to execute, just
 run it on the command line wihtout any arguments. Currently, the
 implemented checks are:
 
-4 TeX lint checks available:
+6 TeX lint checks available:
 - **abbreviation-commata**:
       Finds occurences of abbreviations that call for a comma
       immediately after the abbreviation. Examples are 'e.g.' and
@@ -118,6 +118,9 @@ implemented checks are:
       number and word (e.g., in '32-bit architecture'). May also yield
       false positives (e.g., 'the leftmost 4 bits are').
 
+- **preposition-check**:
+      Finds misused prepositions for certain words.
+
 - **repeated-words**:
       Finds text locations which repeat a lot (i.e. more than x
       occurences in y consecutive words).
@@ -126,6 +129,10 @@ implemented checks are:
       Finds occurences where two words are separate that should be
       written as one word (e.g., 'bit stream', 'byte code', 'run
       time').
+
+- **wordiness**:
+      Checks wordiness of three-word phrases and offers alternatives.
+      For example, "is able to" can be replaced by "can".
 
 
 18 bibliography lint checks available:
