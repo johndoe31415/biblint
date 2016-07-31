@@ -157,7 +157,7 @@ class _CheckPrepositions(TexLintCheck):
 					yield LintOffense(lintclass = self.__class__, sources = OffenseSource.from_texfile(texfile, prep_offset), description = "Expected \"%s\" to stand with any of the prepositions \"%s\", but found \"%s\"." % (word, ", ".join(sorted(acceptable)), preposition))
 
 
-class _CheckWordiness3(TexLintCheck):
+class _CheckWordiness(TexLintCheck):
 	name = "wordiness"
 	description = """
 	Checks wordiness of three-word phrases and offers alternatives. For example, "is able to" can be replaced by "can"."""
@@ -177,3 +177,39 @@ class _CheckWordiness3(TexLintCheck):
 			if words in self._WORDINESS:
 				replacement = self._WORDINESS[words]
 				yield LintOffense(lintclass = self.__class__, sources = OffenseSource.from_texfile(texfile, offset_words[0][0]), description = "Wordiness: \"%s\" could be replaced by \"%s\"." % (" ".join(words), replacement))
+
+class _CheckSloppyAbbreviations(TexLintCheck):
+	name = "sloppy-abbreviations"
+	description = """
+	Checks sloppy abbreviations such as "don't" or "can't" which should be avoided in technical writing."""
+	linttype = "n-raw-words"
+	word_count = 1
+
+	_ALTERNATIVES = {
+		"don't":	"do not",
+		"won't":	"will not",
+		"can't":	"cannot",
+
+		"i'm":		"I am",
+		"you're":	"you are",
+		"he's":		"he is",
+		"she's":	"she is",
+		"it's":		"it is",
+		"we're":	"we are",
+		"they're":	"they are",
+
+		"i'd":		"I would",
+		"you'd":	"you would",
+		"he'd":		"he would",
+		"she'd":	"she would",
+		"it'd":		"it would",
+		"we'd":		"we would",
+		"they'd":	"they would",
+	}
+
+	def check_n_words(self, texfile, generator):
+		for ((offset, word), ) in generator:
+			if word in self._ALTERNATIVES:
+				replacement = self._ALTERNATIVES[word]
+				yield LintOffense(lintclass = self.__class__, sources = OffenseSource.from_texfile(texfile, offset), description = "\"%s\" could be replaced by \"%s\"." % (word, replacement))
+

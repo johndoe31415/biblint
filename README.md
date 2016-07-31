@@ -107,7 +107,7 @@ To get a complete list of checks that biblint is able to execute, just
 run it on the command line wihtout any arguments. Currently, the
 implemented checks are:
 
-6 TeX lint checks available:
+7 TeX lint checks available:
 - **abbreviation-commata**:
       Finds occurences of abbreviations that call for a comma
       immediately after the abbreviation. Examples are 'e.g.' and
@@ -129,6 +129,10 @@ implemented checks are:
       Finds occurences where two words are separate that should be
       written as one word (e.g., 'bit stream', 'byte code', 'run
       time').
+
+- **sloppy-abbreviations**:
+      Checks sloppy abbreviations such as "don't" or "can't" which
+      should be avoided in technical writing.
 
 - **wordiness**:
       Checks wordiness of three-word phrases and offers alternatives.
