@@ -110,7 +110,7 @@ class TexPreprocessor(object):
 			self._text.replace_regex(regex, replacement)
 
 		# Remove enquoted quotations
-		self._text.replace_regex(r"\\enquote{([^}]*)}", "\"\\1\"")
+		self._text.replace_regex(r"\\enquote{([^}]*)}", lambda o: "\"" + o.group(1) + "\"")
 
 		# Strip certain items
 		for name in self._STRIP_NAMES:
