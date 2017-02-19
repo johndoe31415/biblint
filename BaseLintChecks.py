@@ -215,10 +215,11 @@ class BibLintCheck(object):
 	linttype = "per_entry"
 	linttarget = "bib"
 
-	def __init__(self, arguments, bibliography, citations):
+	def __init__(self, arguments, bibliography, citations, texfiles):
 		self._arguments = arguments
 		self._bibliography = bibliography
 		self._citations = citations
+		self._texfiles = texfiles
 		assert(self.linttype in [ "per_entry", "once" ])
 
 	@property
@@ -254,11 +255,12 @@ class TexLintCheck(object):
 	linttype = None
 	linttarget = "tex"
 
-	def __init__(self, arguments, bibliography, citations):
+	def __init__(self, arguments, bibliography, citations, texfiles):
 		self._arguments = arguments
 		self._bibliography = bibliography
 		self._citations = citations
-		assert(self.linttype in [ "n-words", "n-raw-words" ])
+		self._texfiles = texfiles
+		assert(self.linttype in [ "n-words", "n-raw-words", "once" ])
 
 	@property
 	def args(self):
@@ -271,6 +273,16 @@ class TexLintCheck(object):
 	@property
 	def citations(self):
 		return self._citations
+
+	@property
+	def texfiles(self):
+		return self._texfiles
+	
+	def check_all(self):
+		"""This is the hook that is called for 'once' lint types.
+		Unsurprisingly, it is only called once and needs to check all TeX files
+		themselves."""
+		raise Exception(NotImplemented)
 
 	def check_n_words(self, texfile, generator):
 		"""This is the hook that is called for each TeX file that was passed

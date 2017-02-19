@@ -22,6 +22,7 @@
 #
 
 import collections
+from Tools import MiscTools
 from BaseLintChecks import TexLintCheck, LintOffense, OffenseSource
 
 class _CheckNumberWordHyphen(TexLintCheck):
@@ -66,7 +67,7 @@ class _CheckRepeatedWords(TexLintCheck):
 	description = """
 	Finds text locations which repeat a lot (i.e. more than x occurences in y consecutive words)."""
 	linttype = "n-raw-words"
-	word_count = 20
+	word_count = 45
 	threshold = 4
 	_WHITELIST = set((
 		"the",
@@ -162,13 +163,17 @@ class _CheckWordiness(TexLintCheck):
 	description = """
 	Checks wordiness of three-word phrases and offers alternatives. For example, "is able to" can be replaced by "can"."""
 	linttype = "n-raw-words"
-	word_count = 3
+	word_count = [ 3, 4 ]
 
 	_WORDINESS = {
-		("are", "able", "to"):		"can",
-		("is", "able", "to"):		"can",
-		("in", "order", "to"):		"to",
-		("in", "terms", "of"):		"regarding",
+		("are", "able", "to"):				"can",
+		("is", "able", "to"):				"can",
+		("in", "order", "to"):				"to",
+		("in", "order", "for"):				"for",
+		("in", "terms", "of"):				"regarding",
+		("by", "means", "of"):				"using",
+		("has", "the", "ability", "to"):	"can",
+		("have", "the", "ability", "to"):	"can",
 	}
 
 	def check_n_words(self, texfile, generator):
@@ -212,4 +217,42 @@ class _CheckSloppyAbbreviations(TexLintCheck):
 			if word in self._ALTERNATIVES:
 				replacement = self._ALTERNATIVES[word]
 				yield LintOffense(lintclass = self.__class__, sources = OffenseSource.from_texfile(texfile, offset), description = "\"%s\" could be replaced by \"%s\"." % (word, replacement))
+
+
+class _CheckExplainedFirstAbbreviation(TexLintCheck):
+	name = "explained-abbreviations"
+	description = """
+	Checks that the first occurence of every abbreviation is explained properly."""
+	linttype = "once"
+	word_count = 1
+
+	@staticmethod
+	def _extract_abbreviation(text):
+		text = text.strip("\"().,:")
+		if text.endswith("'s"):
+			text = text[:-2]
+		elif text.endswith("s"):
+			text = text[:-1]			
+		return text
+
+	def check_all(self):
+		first_occurences = set()
+		for texfile in self.texfiles:
+			for ((offset, raw_word), ) in texfile.n_words_iter(1):
+				if raw_word.startswith("\\"):
+					# That's a command
+					continue
+				abbreviation = MiscTools.contains_abbreviation(raw_word)
+				if abbreviation is not None:
+					word = self._extract_abbreviation(abbreviation.group(1))
+					if word in first_occurences:
+						continue
+					first_occurences.add(word)
+					
+					expect_explained = "(" + word + ")"
+#					print(raw_word, self._extract_abbreviation(raw_word), word, expect_explained)
+
+					if self._extract_abbreviation(raw_word) != word:
+						yield LintOffense(lintclass = self.__class__, sources = OffenseSource.from_texfile(texfile, offset), description = "\"%s\" is a possibly previously unexplained abbreviation." % (word))
+
 

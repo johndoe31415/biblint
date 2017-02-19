@@ -96,6 +96,7 @@ class BibliographyTools(object):
 class MiscTools(object):
 	_ISBN13_RE = re.compile("\d{3}-\d-\d{3}-\d{5}-[0-9X]")
 	_ISBN10_RE = re.compile("\d-\d{3}-\d{5}-[0-9X]")
+	_ABBRV_RE = re.compile("([A-Z][0-9a-z]*[A-Z]+[A-Za-z0-9]*)")
 
 	@classmethod
 	def isbn_format_correct(cls, isbn):
@@ -153,3 +154,12 @@ class MiscTools(object):
 		isbn = "".join(str(x) for x in int_isbn) + checksum
 
 		return isbn[0 : 3] + "-" + isbn[3] + "-" + isbn[4 : 7] + "-" + isbn[7 : 12] + "-" + isbn[12]
+
+	@classmethod
+	def is_abbreviation(cls, text):
+		return cls._ABBRV_RE.fullmatch(text) is not None
+
+	@classmethod
+	def contains_abbreviation(cls, text):
+		return cls._ABBRV_RE.search(text)
+

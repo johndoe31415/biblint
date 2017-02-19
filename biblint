@@ -111,7 +111,7 @@ with outfile:
 			if args.verbose:
 				print("Now checking %s: %s" % (check_class.linttarget, check_class.name))
 
-			checker = check_class(args, bibliography, citations)
+			checker = check_class(args, bibliography, citations, texfiles)
 			if (check_class.linttarget == "bib") and (check_class.linttype == "per_entry"):
 				for entry in bibliography:
 					if (not args.ignore_suppressions) and entry.suppressed(check_class.name):
@@ -134,6 +134,9 @@ with outfile:
 						generator = texfile.n_raw_words_iter(check_class.word_count)
 					for complaint in checker.check_n_words(texfile, generator):
 						complaints.append(complaint)
+			elif (check_class.linttarget == "tex") and (check_class.linttype == "once"):
+				for complaint in checker.check_all():
+					complaints.append(complaint)
 			else:
 				raise Exception("Unknown linttype %s for %s checker %s" % (check_class.linttype, check_class.linttarget, check_class.name))
 		complaints.sort()
