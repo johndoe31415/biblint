@@ -43,6 +43,9 @@ class TexPreprocessor(object):
 		(r"\\vih", "VIH"),
 		(r"\\ohm", "Ohm"),
 		(r"\\ldots", "..."),
+		(r"\\textasciitilde", "~"),
+		(r"---", "—"),
+		(r"--", "–"),
 	)
 
 	# Strip these commands and only take their inner values
@@ -54,9 +57,12 @@ class TexPreprocessor(object):
 		"mbox",
 		"url",
 		"footnote",
+		"footnotesize",
 		"opcode",
 		"hex",
 		"register",
+		"ac",
+		"acp",
 	)
 
 	# Enclose these by brackets
@@ -156,7 +162,7 @@ class TexPreprocessor(object):
 		self._text.replace_regex(r"\\ ", " ")
 		self._text.replace_regex(r"\\_", "_")
 		self._text.replace_regex(r"\\le", "<=")
-		
+
 		# Remove commands with no arguments
 		self._text.delete_regex(r"\\(cleardoublepage|phantomsection)")
 
@@ -165,7 +171,7 @@ class TexPreprocessor(object):
 
 		# Remove commands with two arguments
 		self._text.delete_regex(r"\\(newcommand|renewcommand|setlength|markboth)({[^}]*}){2}")
-		
+
 		# Remove commands with three arguments
 		self._text.delete_regex(r"\\(addcontentsline)({[^}]*}){3}")
 
@@ -229,7 +235,11 @@ class TexPreprocessor(object):
 		return zip(*(self._words[i:] for i in range(n)))
 
 	def n_raw_words_iter(self, n):
-		return zip(*(self._raw_words[i:] for i in range(n)))
+		if isinstance(n, list):
+			for n_value in n:
+				yield from self.n_raw_words_iter(n_value)
+		else:
+			yield from zip(*(self._raw_words[i:] for i in range(n)))
 
 	def __str__(self):
 		return "TeX text, %d characters, %d words and %d sentences" % (len(self._text), len(self._words), len(self._sentences))
