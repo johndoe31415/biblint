@@ -14,31 +14,18 @@ regarding the layout of the BibTeX file:
 
 Cross-references are not supported.
 
-
-
-### License
+## License
 biblint is licensed under the GNU General Public License version 3. A copy of
 the license should be included in the package in the LICENSE file.
 
-
-
-### Author
-biblint was written by Johannes Bauer. The project is hosted on GitHub at
-https://github.com/johndoe31415/biblint. For further information, visit
-http://johannes-bauer.com.
-
-
-
-### Requirements
-To run biblint, Python 3 is required. The mako templating engine is used for
+## Requirements
+To run biblint, Python 3 is required. The Mako templating engine is used for
 HTML export and is required currently (even if you do not plan to do HTML
 exports). For fuzzy matching of titles, the fuzzywuzzy package is required. If
 you do not have fuzzywuzzy installed, pylint will still work however (albeit
 not provide the fuzzy title checks).
 
-
-
-### Examples
+## Examples
 These are examples of errors which biblint will find:
 
   - Certain underquoted names. For example, this BibTeX title:
@@ -102,7 +89,7 @@ These are examples of errors which biblint will find:
 
 
 
-### Full list of implemented checks
+## Full list of implemented checks
 To get a complete list of checks that biblint is able to execute, just
 run it on the command line wihtout any arguments. Currently, the
 implemented checks are:
@@ -286,15 +273,12 @@ implemented checks are:
       undefined citations in the TeX which never appear in the BibTeX.
 
 
-
-
-### Usage
+## Usage
 Just run biblint and give it the BibTeX file(s) as argument:
 
 ```bash
 $ ./biblint my-awesome-phd-thesis.bib
 ```
-
 It will show you a list of errors on stdout. You can define certain checks to
 be performed or not performed, depending on your preference and goals. For
 example:
@@ -306,8 +290,7 @@ $ ./biblint -c ALL:-misformatted-month my-awesome-phd-thesis.bib
 Will perform all checks but the misformatted month check.
 
 
-
-### Suppressions
+## Suppressions
 Like any analysis tool, biblint will in some cases throw errors where
 everything is perfectly fine. You'll need to tell it that in certain instances
 it can calm down and not report anymore. Here's how:
@@ -342,9 +325,7 @@ you why in this instance it was okay to ignore the error
 % LINT check-missing-doi Datasheets by Foo Semiconductors never have DOIs, duh!
 ```
 
-
-
-### VIM integration
+## Vim integration
 biblint is able to export the lists of potential issues in a format that vim
 can understand (quickfix). For this, do a biblint run and specify the "errfile"
 parameter:
@@ -385,7 +366,7 @@ fixlint:
 	vi -c ":set cmdheight=2" -c ":cf biblint.err"
 ```
 
-### Other uses of biblint
+## Other uses of biblint
 In order to have consistent naming of authors throughout the paper, the names
 of all authors and editors can be exported from biblint using the authorscan
 action:
@@ -428,11 +409,8 @@ This means you'll get a list of authors which highlights exact matches
 (as indicated by '->').
 
 Note that it'll cache URL queries in a SQLite database
-author_scan_cache.sqlite3 in order not to load the DBLP server unnecessarily.
+`author_scan_cache.sqlite3` in order not to load the DBLP server unnecessarily.
 Please not that there's also rate limiting in effect in order to distribute the
 DBLP load. I'll politely ask for you not to disable it. I would hate for them
 to discontinue their incredibly useful machine-readable interface. Don't ruin
 it for everyone, please. :-)
-
-
-
