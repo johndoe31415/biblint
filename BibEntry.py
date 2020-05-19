@@ -1,6 +1,6 @@
 #
 #	biblint - Static checking of BibTeX files to find errors or inconsistencies.
-#	Copyright (C) 2016-2016 Johannes Bauer
+#	Copyright (C) 2016-2020 Johannes Bauer
 #
 #	This file is part of biblint.
 #
@@ -163,6 +163,8 @@ class BibEntry(object):
 		return text
 
 	def parsenames(self, fieldname = "author"):
+		if not self.haskey(fieldname):
+			return
 		authors = self.translittext(fieldname)
 		authors = re.split("\s+and\s+", authors)
 		for author in authors:

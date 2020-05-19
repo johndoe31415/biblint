@@ -1,6 +1,6 @@
 #
 #	biblint - Static checking of BibTeX files to find errors or inconsistencies.
-#	Copyright (C) 2016-2016 Johannes Bauer
+#	Copyright (C) 2016-2020 Johannes Bauer
 #
 #	This file is part of biblint.
 #
@@ -72,6 +72,8 @@ class BibEntryTools(object):
 			return int(bibentry.name[3:])
 
 	def readable_title(bibentry):
+		if not bibentry.haskey("title"):
+			return None
 		title = bibentry.rawtext("title")
 		title = title.replace("\\enquote", "")
 		title = title.replace("~", " ")
@@ -84,7 +86,8 @@ class BibliographyTools(object):
 		titles_by_index = { }
 		for entry in bibliography:
 			title = BibEntryTools.readable_title(entry)
-			titles_by_index[entry.index] = title
+			if title is not None:
+				titles_by_index[entry.index] = title
 
 		# Remove exact matches first
 		indices_by_title = collections.defaultdict(list)

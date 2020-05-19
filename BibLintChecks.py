@@ -1,6 +1,6 @@
 #
 #	biblint - Static checking of BibTeX files to find errors or inconsistencies.
-#	Copyright (C) 2016-2016 Johannes Bauer
+#	Copyright (C) 2016-2020 Johannes Bauer
 #
 #	This file is part of biblint.
 #
@@ -99,6 +99,8 @@ class _CheckUnquotedAbbreviations(BibLintCheck):
 
 	def check_entry(self, entry):
 		for field in [ "title" ]:
+			if not entry.haskey(field):
+				continue
 			parsed_title = entry.parsefield(field)
 			unquoted = [ part.text for part in parsed_title if part.quotelvl <= 1 ]
 			for part in unquoted:
@@ -128,6 +130,8 @@ class _CheckUnquotedNames(BibLintCheck):
 	def check_entry(self, entry):
 		words = [ "keccak", "internet", "fourier", "atmel", "galois", "fibonacci", "stmicroelectronics", "intel", "micron" ]
 		for field in [ "title" ]:
+			if not entry.haskey(field):
+				continue
 			parsed_title = entry.parsefield(field)
 			for word in words:
 				unquoted = [ part.text for part in parsed_title if part.quotelvl <= 1 ]
@@ -148,6 +152,8 @@ class _CheckOverquotedAbbreviations(BibLintCheck):
 	it would advise you that there are multiple words in one huge curly brace. This might be unintentional.
 	"""
 	def check_entry(self, entry):
+		if not entry.haskey("title"):
+			return
 		parsed_title = entry.parsefield("title")
 		quoted = [ part.text for part in parsed_title if part.quotelvl > 1 ]
 		for part in quoted:
@@ -439,6 +445,3 @@ class _CheckFullFirstnames(BibLintCheck):
 		abbreviated = set(abbreviated)
 		if True in abbreviated:
 			yield LintOffense(lintclass = self.__class__, sources = OffenseSource.from_bibentry(entry, fieldname = "author"), description = "Entry has abbreviated first names of authors.")
-
-
-
