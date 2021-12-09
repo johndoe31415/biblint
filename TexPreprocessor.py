@@ -136,6 +136,9 @@ class TexPreprocessor(object):
 		replacement = "" if self._machine_checking else "John Doe and Jane Low"
 		self._text.replace_regex(r"\\[cC]itet{[^}]*}", replacement)
 
+		# Replace redacted text
+		self._text.replace_regex(r"\\redact{[^}]*}", "redacted")
+
 		# Replace citep quotations at end of sentence
 		# TODO?
 #		regex = re.compile(r"~\\citep{[^}]*}\.")
