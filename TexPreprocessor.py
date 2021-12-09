@@ -1,6 +1,6 @@
 #
 #	biblint - Static checking of BibTeX files to find errors or inconsistencies.
-#	Copyright (C) 2016-2016 Johannes Bauer
+#	Copyright (C) 2016-2020 Johannes Bauer
 #
 #	This file is part of biblint.
 #
@@ -62,6 +62,9 @@ class TexPreprocessor(object):
 		"hex",
 		"register",
 		"ac",
+		"Ac",
+		"acs",
+		"acl",
 		"acp",
 	)
 
